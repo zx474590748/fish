@@ -21,14 +21,15 @@
     }
     * { font-family: 'Noto Sans SC', 'Quicksand', sans-serif; }
     body { background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); min-height: 100vh; color: var(--fg); }
+    .font-display { font-family: 'Quicksand', sans-serif; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.04); }
     .btn-primary { background: linear-gradient(135deg, var(--accent), #059669); color: white; border-radius: 12px; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(16,185,129,0.3); border: none; cursor: pointer; }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
     .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .btn-secondary { background: var(--accent-light); color: var(--accent); border-radius: 12px; font-weight: 600; transition: all 0.2s ease; border: none; cursor: pointer; }
     .btn-secondary:hover { background: #a7f3d0; }
-    .input-field { background: #f8fafc; border: 2px solid var(--border); border-radius: 12px; transition: all 0.2s ease; width: 100%; box-sizing: border-box; }
-    .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-light); }
+    .input-field { background: #f8fafc; border: 2px solid var(--border); border-radius: 12px; transition: all 0.2s ease; width: 100%; box-sizing: border-box; outline: none; }
+    .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-light); }
     .room-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; }
     .room-tag.active { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
     .room-tag:not(.active) { background: var(--accent-light); color: var(--accent); }
@@ -62,6 +63,7 @@
     .room-actions { display: flex; align-items: center; gap: 4px; }
     .exit-btn { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(239,68,68,0.1); color: #ef4444; transition: all 0.2s ease; cursor: pointer; flex-shrink: 0; border: none; }
     .exit-btn:hover { background: rgba(239,68,68,0.2); transform: scale(1.1); }
+    .exit-btn.active-exit { background: rgba(255,255,255,0.2); color: white; }
     .join-badge { font-size: 10px; padding: 3px 8px; border-radius: 8px; font-weight: 600; flex-shrink: 0; }
     .world-badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; flex-shrink: 0; }
     .achievement-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
@@ -79,32 +81,42 @@
     .emoji-picker { position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: white; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); width: 280px; z-index: 100; animation: emojiPickerIn 0.2s ease; transform-origin: bottom left; }
     @keyframes emojiPickerIn { from { opacity: 0; transform: scale(0.9) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
     .emoji-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-    .emoji-item { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 8px; cursor: pointer; }
+    .emoji-item { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 8px; cursor: pointer; transition: all 0.15s ease; }
     .emoji-item:hover { background: #f1f5f9; transform: scale(1.15); }
-    .member-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .member-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; color: white; }
     /* 头像背景色 */
     .avatar-world-1 { background: linear-gradient(135deg, #f472b6, #ec4899); }
     .avatar-world-2 { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
     .avatar-world-3 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+    .avatar-world-4 { background: linear-gradient(135deg, #34d399, #10b981); }
+    .avatar-world-5 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
     .avatar-pet-1 { background: linear-gradient(135deg, #fda4af, #fb7185); }
     .avatar-pet-2 { background: linear-gradient(135deg, #fdba74, #fb923c); }
+    .avatar-pet-3 { background: linear-gradient(135deg, #bef264, #a3e635); }
     .avatar-game-1 { background: linear-gradient(135deg, #e879f9, #d946ef); }
+    .avatar-game-2 { background: linear-gradient(135deg, #f472b6, #ec4899); }
+    .avatar-game-3 { background: linear-gradient(135deg, #c084fc, #a855f7); }
     .avatar-travel-1 { background: linear-gradient(135deg, #67e8f9, #22d3ee); }
+    .avatar-travel-2 { background: linear-gradient(135deg, #86efac, #4ade80); }
     .avatar-car-1 { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .avatar-car-2 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
     .avatar-ai-1 { background: linear-gradient(135deg, #818cf8, #6366f1); }
+    .avatar-ai-2 { background: linear-gradient(135deg, #38bdf8, #0ea5e9); }
     .avatar-food-1 { background: linear-gradient(135deg, #fdba74, #fb923c); }
+    .avatar-food-2 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
     .member-item { animation: memberFadeIn 0.3s ease forwards; opacity: 0; }
     @keyframes memberFadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
     .rank-crown { position: absolute; top: -6px; left: -6px; font-size: 16px; }
     .loading-spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
     @media (max-width: 768px) { .sidebar { position: fixed; left: -100%; top: 0; height: 100vh; z-index: 50; transition: left 0.3s ease; } .sidebar.open { left: 0; } }
   </style>
 </head>
 <body class="overflow-hidden">
   <!-- 背景装饰 -->
   <div class="fixed inset-0 pointer-events-none z-0">
-    <div class="absolute rounded-full w-80 h-80 top-[-100px] right-[-100px] bg-gradient-to-br from-emerald-100 to-pink-100 opacity-30" style="border-radius: 50%;"></div>
+    <div class="absolute rounded-full w-80 h-80 top-[-100px] right-[-100px] bg-gradient-to-br from-emerald-100 to-pink-100 opacity-30"></div>
     <div class="absolute rounded-full w-60 h-60 bottom-10 left-[-50px] bg-gradient-to-br from-blue-100 to-purple-100 opacity-30"></div>
   </div>
 
@@ -198,7 +210,7 @@
         <div class="px-6 py-4 border-t border-slate-100">
           <div class="flex items-end gap-2">
             <div class="relative">
-              <button onclick="toggleEmojiPicker()" class="emoji-btn" title="发送表情">😊</button>
+              <button onclick="toggleEmojiPicker()" class="p-3 hover:bg-slate-100 rounded-xl text-xl">😊</button>
               <div id="emojiPicker" class="emoji-picker hidden">
                 <div class="p-3 max-h-48 overflow-y-auto"><div class="emoji-grid" id="emojiGrid"></div></div>
               </div>
@@ -221,14 +233,10 @@
             <div class="pt-2 border-t border-emerald-100">
               <div class="flex justify-between items-center mb-1"><span class="text-xs text-slate-500">摸鱼成就</span></div>
               <div id="achievementBadge" class="achievement-badge achievement-1"><span id="achievementIcon">🐠</span><span id="achievementName">小鱼</span></div>
-              <div class="mt-2">
-                <div class="flex justify-between text-xs text-slate-400 mb-1"><span>下一等级进度</span><span id="progressText">--</span></div>
-                <div class="h-2 bg-white rounded-full overflow-hidden"><div id="progressBar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 transition-all duration-500" style="width: 0%"></div></div>
-              </div>
             </div>
           </div>
         </div>
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between"><h3 class="font-semibold text-slate-800">活跃成员</h3><span id="memberCount" class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">--人</span></div>
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between"><h3 class="font-semibold text-slate-800">在线成员</h3><span id="memberCount" class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">--人</span></div>
         <div class="flex-1 overflow-y-auto p-3 space-y-2" id="memberListContent"></div>
       </aside>
     </div>
@@ -275,29 +283,61 @@
 
 <script>
 // ============================================================
-// 【重要】配置 Supabase (只需修改这里)
+// 【重要】配置 Supabase
 // ============================================================
 const SUPABASE_URL = 'https://xgsmfikhstlxingnzcdf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnc21maWtoc3RseGluZ256Y2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2OTI4NzYsImV4cCI6MjA4ODI2ODg3Nn0.gghyf7F7Wqspd3GzkSQb1DCY_yW5Vq8lmiIWDnR9TPE';
 
-// 初始化 Supabase 客户端 (使用 db 变量名避免冲突)
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============================================================
 // 数据定义
 // ============================================================
-const emojiData = { smileys: ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐'], gestures: ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','💪'], animals: ['🐱','🐶','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷️','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊'], food: ['🍕','🍔','🍟','🌭','🍿','🧂','🥓','🥚','🍳','🧇','🥞','🧈','🍞','🥐','🥖','🥨','🧀','🥗','🥙','🥪','🌮','🌯','🫔','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚','🍘','🍥','🥠','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍬','🍭','🍫'], hearts: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','❤️‍🔥','❤️‍🩹','✨','🌟','⭐','💫','🎈','🎉','🎊','🎀','🎁','🎏','🎐','🎑','🧧','🌹','🌸','🌺','🌻','🌼','🌷','🌱','🪴','🌲','🌳','🌴','🍀','🌿','🍃'] };
+const emojiData = { 
+  smileys: ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐'], 
+  gestures: ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','🙏','💪'], 
+  hearts: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','❤️‍🔥','✨','🌟','⭐','💫','🎈','🎉','🎊','🎀','🎁'] 
+};
 let currentEmojiCategory = 'smileys';
 
+// 根据聊天室类别随机生成用户名和头像
 const memberNamesData = {
-  world: { names: ['小明', 'James', 'Emma', '田中', 'Pierre'], avatars: ['🌏', '🌎', '🌍', '🧑‍🦱', '👨'], avatarClasses: ['avatar-world-1', 'avatar-world-2', 'avatar-world-3'] },
-  pet: { names: ['哈士奇', '柯基', '金毛', '布偶猫', '橘猫'], avatars: ['🐕', '🐶', '🐩', '🐈', '😺'], avatarClasses: ['avatar-pet-1', 'avatar-pet-2'] },
-  travel: { names: ['故宫', '长城', '富士山', '巴黎', '背包客'], avatars: ['🏔️', '⛰️', '🌋', '🗻', '🗺️'], avatarClasses: ['avatar-travel-1'] },
-  game: { names: ['刺客', '法师', '奶妈', '坦克', '欧皇'], avatars: ['🎮', '🕹️', '👾', '🤖', '🧙'], avatarClasses: ['avatar-game-1'] },
-  car: { names: ['奔驰', '宝马', '特斯拉', '老司机'], avatars: ['🚗', '🚕', '🚙', '🏎️'], avatarClasses: ['avatar-car-1'] },
-  ai: { names: ['ChatGPT', 'Claude', '算法工程师'], avatars: ['🤖', '🧠', '💻'], avatarClasses: ['avatar-ai-1'] },
-  food: { names: ['火锅', '烧烤', '奶茶', '吃货'], avatars: ['🍜', '🍝', '🧋', '🍣'], avatarClasses: ['avatar-food-1'] }
+  world: { 
+    names: ['小明', '小红', 'James', 'Emma', '田中', '佐藤', 'Pierre', 'Hans', 'Giovanni', 'Carlos', 'Ahmed', 'Fatima', 'Michael', 'Sophia', 'William', 'Olivia'], 
+    avatars: ['🌏', '🌎', '🌍', '🧑‍🦱', '👨', '👩', '🧔', '👱', '👸', '🤴', '👳', '👲', '🧕', '👱‍♀️', '👨‍🦰', '👩‍🦰'], 
+    avatarClasses: ['avatar-world-1', 'avatar-world-2', 'avatar-world-3', 'avatar-world-4', 'avatar-world-5'] 
+  },
+  pet: { 
+    names: ['哈士奇', '柯基', '金毛', '拉布拉多', '萨摩耶', '泰迪', '比熊', '边牧', '德牧', '杜宾', '布偶猫', '英短', '美短', '暹罗猫', '波斯猫', '缅因猫', '橘猫', '狸花猫', '蓝猫', '加菲猫', '仓鼠', '龙猫', '荷兰猪', '兔子'], 
+    avatars: ['🐕', '🐶', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '😺', '😸', '😻', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨'], 
+    avatarClasses: ['avatar-pet-1', 'avatar-pet-2', 'avatar-pet-3'] 
+  },
+  travel: { 
+    names: ['故宫', '长城', '西湖', '黄山', '九寨沟', '张家界', '桂林', '丽江', '大理', '三亚', '富士山', '济州岛', '巴厘岛', '马尔代夫', '普吉岛', '夏威夷', '巴黎', '伦敦', '东京', '悉尼', '背包客', '独行侠', '自驾游'], 
+    avatars: ['🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🌅', '🌄', '🌠', '🎇', '🎆', '🌁', '🌃'], 
+    avatarClasses: ['avatar-travel-1', 'avatar-travel-2'] 
+  },
+  game: { 
+    names: ['刺客信条', '暗黑骑士', '神射手', '魔法师', '召唤师', '圣骑士', '狂战士', '奶妈', '坦克', '输出位', '氪金大佬', '肝帝', '欧皇', '非酋', '带飞王', '王者', '原神', '塞尔达', 'MC玩家', '吃鸡王'], 
+    avatars: ['🎮', '🕹️', '👾', '🤖', '🧙', '🧝', '🧛', '🧟', '🦸', '🦹', '💂', '🥷', '🏹', '⚔️', '🛡️', '🔫'], 
+    avatarClasses: ['avatar-game-1', 'avatar-game-2', 'avatar-game-3'] 
+  },
+  car: { 
+    names: ['奔驰', '宝马', '奥迪', '保时捷', '法拉利', '兰博基尼', '特斯拉', '比亚迪', '蔚来', '理想', '小鹏', '丰田', '本田', '日产', '马自达', '大众', '改装车', '越野族', '老司机'], 
+    avatars: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🛻', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵'], 
+    avatarClasses: ['avatar-car-1', 'avatar-car-2'] 
+  },
+  ai: { 
+    names: ['ChatGPT', 'Claude', 'Gemini', 'Copilot', '文心一言', '通义千问', '讯飞星火', 'Kimi', '豆包', 'Stable', 'Midjourney', '算法工程师', '数据科学家', 'Prompt工程师', 'AI产品经理', 'Transformer', 'LLM', 'AGI'], 
+    avatars: ['🤖', '🧠', '💻', '🖥️', '⌨️', '📱', '🔮', '🧬', '🔬', '🔭', '📡', '💾', '💿', '🧮', '📊', '📈'], 
+    avatarClasses: ['avatar-ai-1', 'avatar-ai-2'] 
+  },
+  food: { 
+    names: ['火锅', '烧烤', '麻辣烫', '冒菜', '串串香', '小龙虾', '螺蛳粉', '臭豆腐', '饺子', '馄饨', '寿司', '刺身', '拉面', '泡菜', '炸鸡', '牛排', '披萨', '汉堡', '蛋糕', '奶茶', '咖啡', '吃货一枚'], 
+    avatars: ['🍜', '🍝', '🍲', '🍛', '🍣', '🍱', '🥟', '🍤', '🍙', '🍚', '🍘', '🍢', '🥘', '🥙', '🥪', '🌮'], 
+    avatarClasses: ['avatar-food-1', 'avatar-food-2'] 
+  }
 };
 
 const achievementLevels = [
@@ -311,10 +351,7 @@ const achievementLevels = [
 function getAchievement(minutes) {
   let level = achievementLevels[0];
   for (let i = achievementLevels.length - 1; i >= 0; i--) { if (minutes >= achievementLevels[i].minMinutes) { level = achievementLevels[i]; break; } }
-  const nextLevel = achievementLevels.find(l => l.minMinutes > minutes);
-  let progress = 100, progressText = '已满级';
-  if (nextLevel) { const range = nextLevel.minMinutes - level.minMinutes; const current = minutes - level.minMinutes; progress = Math.floor((current / range) * 100); progressText = `${minutes}/${nextLevel.minMinutes}`; }
-  return { ...level, progress, progressText, levelIndex: achievementLevels.indexOf(level) + 1 };
+  return { ...level, levelIndex: achievementLevels.indexOf(level) + 1 };
 }
 
 const roomStatsData = { world: { users: 0, minutes: 2450 }, game: { users: 0, minutes: 1820 }, ai: { users: 0, minutes: 1350 }, pet: { users: 0, minutes: 980 }, food: { users: 0, minutes: 720 }, travel: { users: 0, minutes: 450 }, car: { users: 0, minutes: 280 } };
@@ -330,16 +367,18 @@ const roomTypes = [
 ];
 
 const newsData = {
-  world: [ { title: '全球气候峰会达成新协议', summary: '195个国家就减排目标达成一致', time: '2小时前', hot: true }, { title: '国际空间站迎来新成员', summary: '宇航员成功对接空间站', time: '3小时前', hot: false }, { title: '世界杯预选赛最新战报', summary: '多支强队遭遇失利', time: '6小时前', hot: true } ],
+  world: [ { title: '全球气候峰会达成新协议', summary: '195个国家就减排目标达成一致', time: '2小时前', hot: true }, { title: '国际空间站迎来新成员', summary: '宇航员成功对接空间站', time: '3小时前' }, { title: '世界杯预选赛最新战报', summary: '多支强队遭遇失利', time: '6小时前', hot: true } ],
   pet: [ { title: '养宠物有助于缓解焦虑', summary: '研究表明与宠物互动可降低压力', time: '1小时前', hot: true }, { title: '最受欢迎宠物品种公布', summary: '柯基首次登顶', time: '3小时前', hot: true } ],
-  travel: [ { title: '最佳旅游目的地榜单', summary: '冰岛北部小镇登顶', time: '2小时前', hot: true }, { title: '签证便利化政策实施', summary: '多国开放电子签证', time: '4小时前', hot: false } ],
+  travel: [ { title: '最佳旅游目的地榜单', summary: '冰岛北部小镇登顶', time: '2小时前', hot: true }, { title: '签证便利化政策实施', summary: '多国开放电子签证', time: '4小时前' } ],
   game: [ { title: '国产3A大作销量破千万', summary: '创造历史记录', time: '1小时前', hot: true }, { title: 'Steam夏季促销开启', summary: '数千款游戏折扣', time: '3小时前', hot: true } ],
-  car: [ { title: '新能源车销量再创新高', summary: '同比增长45%', time: '2小时前', hot: true }, { title: '固态电池量产时间确定', summary: '2025年搭载', time: '4小时前', hot: false } ],
+  car: [ { title: '新能源车销量再创新高', summary: '同比增长45%', time: '2小时前', hot: true }, { title: '固态电池量产时间确定', summary: '2025年搭载', time: '4小时前' } ],
   ai: [ { title: 'GPT-5发布时间确定', summary: '今年Q4发布', time: '30分钟前', hot: true }, { title: '国产大模型榜单更新', summary: '文心一言领跑', time: '2小时前', hot: true } ],
   food: [ { title: '米其林新榜单发布', summary: '新增8家三星餐厅', time: '1小时前', hot: true }, { title: '网红餐厅避坑指南', summary: '必吃榜真相揭秘', time: '3小时前', hot: true } ]
 };
 
 const sensitiveWords = ['傻逼', '操', '妈的', 'fuck', 'shit', 'damn', '黄', '赌', '毒'];
+
+// 状态变量
 let currentUser = null;
 let currentRoom = 'world';
 let joinedRooms = ['world'];
@@ -348,9 +387,13 @@ let totalWords = 0;
 let onlineTime = 0;
 let checkinDays = [];
 let onlineTimer = null;
+let heartbeatTimer = null;
 let expandedNews = {};
-let currentMembers = [];
 let msgChannel = null;
+let usersChannel = null;
+let currentDisplayName = ''; // 当前聊天室显示名称
+let currentDisplayAvatar = ''; // 当前聊天室显示头像
+let currentDisplayAvatarClass = ''; // 当前聊天室头像样式
 
 // ============================================================
 // 初始化
@@ -366,12 +409,47 @@ async function init() {
       totalWords = currentUser.total_words || 0;
       onlineTime = currentUser.online_time || 0;
       checkinDays = currentUser.checkin_days || [];
+      
+      // 设置在线状态
+      await setOnlineStatus(true);
+      
       showMainApp();
       return;
     }
   }
   document.getElementById('authModal').classList.remove('hidden');
   document.getElementById('authModal').classList.add('flex');
+}
+
+// 设置在线状态
+async function setOnlineStatus(isOnline) {
+  if (!currentUser) return;
+  await db.from('users').update({ 
+    is_online: isOnline, 
+    last_seen: new Date().toISOString() 
+  }).eq('id', currentUser.id);
+}
+
+// 心跳检测 - 每30秒更新一次在线状态
+function startHeartbeat() {
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(async () => {
+    if (currentUser) {
+      await db.from('users').update({ last_seen: new Date().toISOString() }).eq('id', currentUser.id);
+    }
+  }, 30000);
+}
+
+// 生成当前聊天室的随机显示名和头像
+function generateRandomProfile(roomId) {
+  const data = memberNamesData[roomId] || memberNamesData.world;
+  const randomIndex = Math.floor(Math.random() * data.names.length);
+  const avatarIndex = Math.floor(Math.random() * data.avatars.length);
+  const classIndex = Math.floor(Math.random() * data.avatarClasses.length);
+  
+  currentDisplayName = data.names[randomIndex];
+  currentDisplayAvatar = data.avatars[avatarIndex];
+  currentDisplayAvatarClass = data.avatarClasses[classIndex];
 }
 
 function startOnlineTimer() {
@@ -394,8 +472,6 @@ function updateRoomStats() {
     document.getElementById('statTotalTime').textContent = `${stats.minutes} 分钟`;
     document.getElementById('achievementIcon').textContent = achievement.icon;
     document.getElementById('achievementName').textContent = achievement.name;
-    document.getElementById('progressText').textContent = achievement.progressText;
-    document.getElementById('progressBar').style.width = `${achievement.progress}%`;
     document.getElementById('achievementBadge').className = `achievement-badge ${achievement.class}`;
   }
 }
@@ -404,10 +480,9 @@ function updateRoomStats() {
 // 表情选择器
 // ============================================================
 function toggleEmojiPicker() { const picker = document.getElementById('emojiPicker'); picker.classList.toggle('hidden'); if (!picker.classList.contains('hidden')) renderEmojiGrid(); }
-function switchEmojiCategory(category) { currentEmojiCategory = category; document.querySelectorAll('.emoji-category-tab').forEach(tab => { tab.classList.remove('active'); if (tab.dataset.category === category) tab.classList.add('active'); }); renderEmojiGrid(); }
 function renderEmojiGrid() { const grid = document.getElementById('emojiGrid'); const emojis = emojiData[currentEmojiCategory] || emojiData.smileys; grid.innerHTML = emojis.map(emoji => `<div class="emoji-item" onclick="insertEmoji('${emoji}')">${emoji}</div>`).join(''); }
 function insertEmoji(emoji) { const input = document.getElementById('messageInput'); const start = input.selectionStart; input.value = input.value.substring(0, start) + emoji + input.value.substring(input.selectionEnd); input.selectionStart = input.selectionEnd = start + emoji.length; input.focus(); autoResize(input); }
-document.addEventListener('click', (e) => { const picker = document.getElementById('emojiPicker'); const emojiBtn = document.querySelector('.emoji-btn'); if (picker && !picker.contains(e.target) && !emojiBtn.contains(e.target)) picker.classList.add('hidden'); });
+document.addEventListener('click', (e) => { const picker = document.getElementById('emojiPicker'); if (picker && !picker.contains(e.target) && !e.target.closest('button')) picker.classList.add('hidden'); });
 
 // ============================================================
 // 登录注册
@@ -431,6 +506,7 @@ async function handleLogin() {
     onlineTime = currentUser.online_time || 0;
     checkinDays = currentUser.checkin_days || [];
     localStorage.setItem('fishUser', JSON.stringify(currentUser));
+    await setOnlineStatus(true);
     showMainApp();
   } else showToast('用户名或密码错误');
 }
@@ -444,7 +520,7 @@ async function handleRegister() {
   const { data: exist } = await db.from('users').select('username').eq('username', username).single();
   if (exist) { showToast('用户名已存在'); setButtonLoading('registerBtn', false); return; }
   const rooms = ['world', ...selectedRoomTypes.slice(0, 3)];
-  const { data } = await db.from('users').insert({ username, password, joined_rooms: rooms }).select().single();
+  const { data } = await db.from('users').insert({ username, password, joined_rooms: rooms, is_online: true }).select().single();
   setButtonLoading('registerBtn', false);
   if (data) {
     currentUser = data;
@@ -471,8 +547,11 @@ function setButtonLoading(btnId, loading) {
 }
 
 async function handleLogout() {
+  await setOnlineStatus(false);
   if (currentUser) await db.from('users').update({ online_time: onlineTime, total_words: totalWords, checkin_days: checkinDays }).eq('id', currentUser.id);
   if (msgChannel) await db.removeChannel(msgChannel);
+  if (usersChannel) await db.removeChannel(usersChannel);
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
   currentUser = null; localStorage.removeItem('fishUser');
   document.getElementById('authModal').classList.remove('hidden');
   document.getElementById('authModal').classList.add('flex');
@@ -488,9 +567,14 @@ function showMainApp() {
   document.getElementById('mainApp').classList.remove('hidden');
   document.getElementById('userName').textContent = currentUser.username;
   document.getElementById('userAvatar').textContent = currentUser.username[0].toUpperCase();
-  renderAllRooms(); renderRoomTags(); renderMessages(); renderMembers(); updateJoinedCount(); updateRoomStats();
+  
+  // 生成初始随机身份
+  generateRandomProfile(currentRoom);
+  
+  renderAllRooms(); renderRoomTags(); renderMessages(); updateJoinedCount(); updateRoomStats();
   switchRoom(currentRoom);
   startOnlineTimer();
+  startHeartbeat();
 }
 
 function renderAllRooms() {
@@ -523,7 +607,7 @@ function renderAllRooms() {
     return `<div class="mb-2">
       <div class="room-item ${isJoined ? 'joined' : ''} ${isActive ? 'active' : ''}" onclick="handleRoomClick('${room.id}', ${isJoined})">
         <div class="room-icon ${isActive && isJoined ? 'bg-white/30' : colorMap[room.color]}"><span class="text-xl">${room.emoji}</span></div>
-        <div class="room-info"><div class="font-medium text-sm room-name truncate flex items-center gap-2">${room.name} <span class="text-xs opacity-70">${achievement.icon}</span></div><div class="text-xs room-online">${stats.users}人 · ${achievement.name}</div></div>
+        <div class="room-info"><div class="font-medium text-sm room-name truncate flex items-center gap-2">${room.name} <span class="text-xs opacity-70">${achievement.icon}</span></div><div class="text-xs room-online">${stats.users}人在线</div></div>
         <div class="room-actions">${hasNews ? `<span class="news-badge" onclick="event.stopPropagation(); toggleNewsPreview('${room.id}')">资讯</span>` : ''}${actionsHtml}</div>
         ${idx < 3 ? `<span class="rank-crown">${idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>` : ''}
       </div>
@@ -587,6 +671,10 @@ function renderRoomTags() {
 
 async function switchRoom(id) {
   currentRoom = id;
+  
+  // 切换聊天室时生成新的随机身份
+  generateRandomProfile(id);
+  
   const room = roomTypes.find(r => r.id === id);
   if (room) {
     document.getElementById('currentRoomName').textContent = room.name;
@@ -595,8 +683,9 @@ async function switchRoom(id) {
     const colorMap = { emerald: 'bg-emerald-100', pink: 'bg-pink-100', blue: 'bg-blue-100', purple: 'bg-purple-100', orange: 'bg-orange-100', cyan: 'bg-cyan-100', red: 'bg-red-100' };
     document.getElementById('currentRoomIcon').className = `room-icon ${colorMap[room.color]}`;
   }
-  renderAllRooms(); renderRoomTags(); renderMembers(); updateRoomStats();
-  await loadMessages(); subscribeMessages();
+  
+  renderAllRooms(); renderRoomTags(); updateRoomStats();
+  await loadMessages(); subscribeMessages(); loadOnlineUsers();
 }
 
 async function loadMessages() {
@@ -617,50 +706,90 @@ function subscribeMessages() {
 
 function appendMessage(msg, scroll = true) {
   const container = document.getElementById('messageList');
-  const isSelf = msg.username === currentUser?.username;
+  const isSelf = msg.username === currentUser?.id; // 用ID判断是否是自己
   const time = new Date(msg.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  const data = memberNamesData[currentRoom] || memberNamesData.world;
-  const avatar = data.avatars[Math.floor(Math.random() * data.avatars.length)];
-  const avatarClass = data.avatarClasses[Math.floor(Math.random() * data.avatarClasses.length)];
+  
+  // 根据消息中的avatar_class获取头像样式，如果没有则随机生成
+  let avatarClass = msg.avatar_class;
+  if (!avatarClass) {
+    const data = memberNamesData[currentRoom] || memberNamesData.world;
+    avatarClass = data.avatarClasses[Math.floor(Math.random() * data.avatarClasses.length)];
+  }
   
   if (container.querySelector('p')) container.innerHTML = '';
   
   const msgHtml = `<div class="message flex items-start gap-3 ${isSelf ? 'flex-row-reverse' : ''}">
-    <div class="w-10 h-10 rounded-full ${isSelf ? 'bg-gradient-to-br from-emerald-400 to-teal-500' : avatarClass} flex items-center justify-center text-lg flex-shrink-0">${isSelf ? currentUser.username[0].toUpperCase() : avatar}</div>
-    <div class="${isSelf ? 'text-right' : ''}"><div class="flex items-center gap-2 mb-1 ${isSelf ? 'justify-end' : ''}"><span class="font-medium text-slate-800">${msg.username}</span><span class="text-xs text-slate-400">${time}</span></div><div class="${isSelf ? 'message-self' : 'message-other'} px-4 py-2 max-w-xs inline-block">${escapeHtml(msg.content)}</div></div>
+    <div class="w-10 h-10 rounded-full ${isSelf ? currentDisplayAvatarClass : avatarClass} flex items-center justify-center text-lg flex-shrink-0">${isSelf ? currentDisplayAvatar : msg.avatar || '👤'}</div>
+    <div class="${isSelf ? 'text-right' : ''}"><div class="flex items-center gap-2 mb-1 ${isSelf ? 'justify-end' : ''}"><span class="font-medium text-slate-800">${isSelf ? currentDisplayName : msg.display_name || msg.username}</span><span class="text-xs text-slate-400">${time}</span></div><div class="${isSelf ? 'message-self' : 'message-other'} px-4 py-2 max-w-xs inline-block">${escapeHtml(msg.content)}</div></div>
   </div>`;
   
   container.insertAdjacentHTML('beforeend', msgHtml);
   if (scroll) container.scrollTop = container.scrollHeight;
 }
 
-function escapeHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
+// 发送消息时使用随机生成的身份
 async function sendMessage() {
   const input = document.getElementById('messageInput');
   const content = input.value.trim();
   if (!content) return;
-  if (containsSensitiveWords(content)) { showToast('请文明发言'); return; }
+  if (sensitiveWords.some(word => content.toLowerCase().includes(word))) { showToast('请文明发言'); return; }
+  
   totalWords += content.length;
   input.value = '';
-  await db.from('messages').insert({ room_id: currentRoom, user_id: currentUser.id, username: currentUser.username, content });
+  
+  // 使用当前随机身份发送消息
+  await db.from('messages').insert({ 
+    room_id: currentRoom, 
+    user_id: currentUser.id, 
+    username: currentUser.id, // 用ID关联
+    display_name: currentDisplayName, // 显示名
+    avatar: currentDisplayAvatar, // 头像
+    avatar_class: currentDisplayAvatarClass, // 头像样式
+    content 
+  });
 }
 
-function containsSensitiveWords(text) { return sensitiveWords.some(word => text.toLowerCase().includes(word)); }
+function escapeHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function renderMembers() {
-  const data = memberNamesData[currentRoom] || memberNamesData.world;
-  const members = [];
-  for (let i = 0; i < 8; i++) {
-    members.push({
-      name: data.names[i % data.names.length],
-      status: Math.random() > 0.2 ? '在线' : '离开',
-      avatar: data.avatars[i % data.avatars.length],
-      avatarClass: data.avatarClasses[i % data.avatarClasses.length]
-    });
+// 加载在线用户
+async function loadOnlineUsers() {
+  // 获取最近5分钟内活跃的用户
+  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const { data: onlineUsers } = await db.from('users').select('*').gte('last_seen', fiveMinAgo).eq('is_online', true).limit(20);
+  
+  const count = onlineUsers?.length || 0;
+  document.getElementById('onlineCount').textContent = `${count} 在线`;
+  document.getElementById('statFishers').textContent = count;
+  roomStatsData[currentRoom].users = count;
+  
+  // 渲染成员列表
+  renderOnlineMembers(onlineUsers || []);
+}
+
+function renderOnlineMembers(users) {
+  const container = document.getElementById('memberListContent');
+  document.getElementById('memberCount').textContent = `${users.length}人`;
+  
+  if (users.length === 0) {
+    container.innerHTML = '<p class="text-center text-slate-400 py-4 text-sm">暂无在线用户</p>';
+    return;
   }
-  document.getElementById('memberCount').textContent = `${members.filter(m => m.status === '在线').length}人`;
-  document.getElementById('memberListContent').innerHTML = members.map((m, i) => `<div class="member-item flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50" style="animation-delay: ${i * 50}ms"><div class="member-avatar ${m.avatarClass}">${m.avatar}</div><div class="flex-1"><div class="font-medium text-slate-700 text-sm">${m.name}</div><div class="text-xs ${m.status === '在线' ? 'text-emerald-500' : 'text-slate-400'}">${m.status}</div></div>${m.status === '在线' ? '<div class="online-dot"></div>' : ''}</div>`).join('');
+  
+  container.innerHTML = users.map((user, i) => {
+    // 为每个用户随机生成一个身份
+    const data = memberNamesData[currentRoom] || memberNamesData.world;
+    const name = data.names[i % data.names.length];
+    const avatar = data.avatars[i % data.avatars.length];
+    const avatarClass = data.avatarClasses[i % data.avatarClasses.length];
+    
+    const isSelf = user.id === currentUser?.id;
+    
+    return `<div class="member-item flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50" style="animation-delay: ${i * 50}ms">
+      <div class="member-avatar ${avatarClass}">${isSelf ? currentDisplayAvatar : avatar}</div>
+      <div class="flex-1"><div class="font-medium text-slate-700 text-sm">${isSelf ? currentDisplayName : name}</div><div class="text-xs text-emerald-500">在线</div></div>
+      <div class="online-dot"></div>
+    </div>`;
+  }).join('');
 }
 
 function updateJoinedCount() { document.getElementById('joinedCount').textContent = joinedRooms.filter(r => r !== 'world').length; }
@@ -708,6 +837,7 @@ function renderCheckinCalendar() {
   }).join('');
 }
 
+// 启动
 init();
 </script>
 </body>
