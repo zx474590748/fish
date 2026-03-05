@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>FISH - 世界聊天室</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,98 +19,84 @@
       --card: #ffffff;
       --border: #e2e8f0;
     }
-    * { font-family: 'Noto Sans SC', 'Quicksand', sans-serif; }
-    body { background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); min-height: 100vh; color: var(--fg); }
-    .font-display { font-family: 'Quicksand', sans-serif; }
+    * { font-family: 'Noto Sans SC', 'Quicksand', sans-serif; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); min-height: 100vh; color: var(--fg); overflow: hidden; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.04); }
     .btn-primary { background: linear-gradient(135deg, var(--accent), #059669); color: white; border-radius: 12px; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(16,185,129,0.3); border: none; cursor: pointer; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
     .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .btn-secondary { background: var(--accent-light); color: var(--accent); border-radius: 12px; font-weight: 600; transition: all 0.2s ease; border: none; cursor: pointer; }
     .btn-secondary:hover { background: #a7f3d0; }
-    .input-field { background: #f8fafc; border: 2px solid var(--border); border-radius: 12px; transition: all 0.2s ease; width: 100%; box-sizing: border-box; outline: none; }
-    .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-light); }
+    .input-field { background: #f8fafc; border: 2px solid var(--border); border-radius: 12px; transition: all 0.2s ease; width: 100%; outline: none; }
+    .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
     .room-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; }
-    .room-tag.active { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+    .room-tag.active { background: var(--accent); color: white; }
     .room-tag:not(.active) { background: var(--accent-light); color: var(--accent); }
     .message { animation: slideIn 0.3s ease; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .message-self { background: linear-gradient(135deg, var(--accent), #059669); color: white; border-radius: 18px 18px 4px 18px; }
-    .message-other { background: #f1f5f9; color: var(--fg); border-radius: 18px 18px 18px 4px; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    .modal-overlay { background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); }
+    .message-other { background: #f1f5f9; border-radius: 18px 18px 18px 4px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+    .modal-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
     .modal-content { animation: modalIn 0.3s ease; }
     @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    .checkin-day { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; transition: all 0.2s ease; }
-    .checkin-day.checked { background: linear-gradient(135deg, var(--accent), #059669); color: white; }
-    .checkin-day.today { border: 2px solid var(--secondary); }
-    .online-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-    .room-type-card { border: 2px solid var(--border); border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.2s ease; }
-    .room-type-card:hover { border-color: var(--accent); background: var(--accent-light); }
-    .room-type-card.selected { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 0 0 4px rgba(16,185,129,0.2); }
-    .stat-number { font-family: 'Quicksand', sans-serif; font-weight: 700; }
-    .room-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 14px; cursor: pointer; transition: all 0.2s ease; position: relative; }
-    .room-item.joined { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 1.5px solid #a7f3d0; }
-    .room-item.joined:hover { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
-    .room-item.joined.active { background: linear-gradient(135deg, #10b981, #059669); border-color: transparent; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
-    .room-item.joined.active .room-name, .room-item.joined.active .room-online { color: white; }
-    .room-item:not(.joined) { background: #f8fafc; border: 1.5px dashed #e2e8f0; }
-    .room-item:not(.joined):hover { background: #fef3c7; border-color: #fcd34d; }
-    .room-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .room-info { flex: 1; min-width: 0; }
-    .room-actions { display: flex; align-items: center; gap: 4px; }
-    .exit-btn { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(239,68,68,0.1); color: #ef4444; transition: all 0.2s ease; cursor: pointer; flex-shrink: 0; border: none; }
-    .exit-btn:hover { background: rgba(239,68,68,0.2); transform: scale(1.1); }
-    .exit-btn.active-exit { background: rgba(255,255,255,0.2); color: white; }
-    .join-badge { font-size: 10px; padding: 3px 8px; border-radius: 8px; font-weight: 600; flex-shrink: 0; }
-    .world-badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; flex-shrink: 0; }
+    .online-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; display: inline-block; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .room-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+    .room-item.joined { background: #ecfdf5; border: 1px solid #a7f3d0; }
+    .room-item.active { background: linear-gradient(135deg, var(--accent), #059669); color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+    .room-item:not(.joined) { background: #f8fafc; border: 1px dashed #e2e8f0; }
+    .room-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #e2e8f0; }
+    .room-item.active .room-icon { background: rgba(255,255,255,0.2); }
     .achievement-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .achievement-1 { background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0369a1; }
-    .achievement-2 { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #15803d; }
-    .achievement-3 { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #b45309; }
-    .achievement-4 { background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #be185d; }
-    .achievement-5 { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #4338ca; }
-    .news-badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #818cf8, #6366f1); color: white; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease; border: none; }
-    .news-badge:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(99,102,241,0.4); }
-    .news-card { padding: 12px 14px; border-radius: 10px; background: linear-gradient(135deg, #fafafa, #f5f5f5); border: 1px solid #e5e5e5; transition: all 0.2s ease; cursor: pointer; margin-bottom: 8px; }
-    .news-card:hover { background: linear-gradient(135deg, #f5f5f5, #eeeeee); transform: translateX(4px); }
-    .news-preview-list { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-    .news-preview-list.expanded { max-height: 300px; }
-    .emoji-picker { position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: white; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); width: 280px; z-index: 100; animation: emojiPickerIn 0.2s ease; transform-origin: bottom left; }
-    @keyframes emojiPickerIn { from { opacity: 0; transform: scale(0.9) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    .emoji-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-    .emoji-item { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 8px; cursor: pointer; transition: all 0.15s ease; }
-    .emoji-item:hover { background: #f1f5f9; transform: scale(1.15); }
-    .member-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; color: white; }
-    /* 头像背景色 */
+    .achievement-1 { background: #e0f2fe; color: #0369a1; }
+    .achievement-2 { background: #dcfce7; color: #15803d; }
+    .achievement-3 { background: #fef3c7; color: #b45309; }
+    .achievement-4 { background: #fce7f3; color: #be185d; }
+    .achievement-5 { background: #e0e7ff; color: #4338ca; }
+    .member-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; color: white; }
     .avatar-world-1 { background: linear-gradient(135deg, #f472b6, #ec4899); }
     .avatar-world-2 { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
-    .avatar-world-3 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
-    .avatar-world-4 { background: linear-gradient(135deg, #34d399, #10b981); }
-    .avatar-world-5 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
     .avatar-pet-1 { background: linear-gradient(135deg, #fda4af, #fb7185); }
-    .avatar-pet-2 { background: linear-gradient(135deg, #fdba74, #fb923c); }
-    .avatar-pet-3 { background: linear-gradient(135deg, #bef264, #a3e635); }
     .avatar-game-1 { background: linear-gradient(135deg, #e879f9, #d946ef); }
-    .avatar-game-2 { background: linear-gradient(135deg, #f472b6, #ec4899); }
-    .avatar-game-3 { background: linear-gradient(135deg, #c084fc, #a855f7); }
     .avatar-travel-1 { background: linear-gradient(135deg, #67e8f9, #22d3ee); }
-    .avatar-travel-2 { background: linear-gradient(135deg, #86efac, #4ade80); }
     .avatar-car-1 { background: linear-gradient(135deg, #94a3b8, #64748b); }
-    .avatar-car-2 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
     .avatar-ai-1 { background: linear-gradient(135deg, #818cf8, #6366f1); }
-    .avatar-ai-2 { background: linear-gradient(135deg, #38bdf8, #0ea5e9); }
     .avatar-food-1 { background: linear-gradient(135deg, #fdba74, #fb923c); }
-    .avatar-food-2 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
-    .member-item { animation: memberFadeIn 0.3s ease forwards; opacity: 0; }
-    @keyframes memberFadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-    .rank-crown { position: absolute; top: -6px; left: -6px; font-size: 16px; }
-    .loading-spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .loading-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .hidden { display: none !important; }
-    @media (max-width: 768px) { .sidebar { position: fixed; left: -100%; top: 0; height: 100vh; z-index: 50; transition: left 0.3s ease; } .sidebar.open { left: 0; } }
+    
+    /* 移动端优化 */
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 280px; z-index: 60; transform: translateX(-100%); transition: transform 0.3s ease; box-shadow: none; border-radius: 0; border-right: 1px solid var(--border); }
+      .sidebar.open { transform: translateX(0); box-shadow: 20px 0 40px rgba(0,0,0,0.2); }
+      .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 55; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+      .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+      .right-panel { position: fixed; right: 0; top: 0; height: 100vh; width: 300px; z-index: 60; transform: translateX(100%); transition: transform 0.3s ease; }
+      .right-panel.open { transform: translateX(0); box-shadow: -20px 0 40px rgba(0,0,0,0.2); }
+      .mobile-nav { display: flex !important; }
+      .chat-header-actions { display: flex !important; }
+    }
+    @media (min-width: 769px) {
+      .sidebar { position: relative; transform: none; }
+      .sidebar-overlay { display: none; }
+      .mobile-nav { display: none !important; }
+      .chat-header-actions { display: none !important; }
+    }
+
+    /* 五子棋样式 */
+    .game-board { display: grid; grid-template-columns: repeat(15, 1fr); gap: 0; background: #dcb35c; padding: 4px; border-radius: 8px; user-select: none; }
+    .game-cell { width: 20px; height: 20px; position: relative; cursor: pointer; }
+    .game-cell::before, .game-cell::after { content: ''; position: absolute; background: #b8860b; }
+    .game-cell::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+    .game-cell::after { top: 50%; left: 0; right: 0; height: 1px; }
+    .game-piece { position: absolute; inset: 2px; border-radius: 50%; z-index: 1; box-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+    .game-piece.black { background: radial-gradient(circle at 30% 30%, #555, #000); }
+    .game-piece.white { background: radial-gradient(circle at 30% 30%, #fff, #ddd); }
+    .game-piece.last::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 2px solid red; }
   </style>
 </head>
 <body class="overflow-hidden">
@@ -120,300 +106,272 @@
     <div class="absolute rounded-full w-60 h-60 bottom-10 left-[-50px] bg-gradient-to-br from-blue-100 to-purple-100 opacity-30"></div>
   </div>
 
+  <!-- 移动端侧边栏遮罩 -->
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
   <!-- 登录/注册模态框 -->
   <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
     <div class="modal-content card p-8 w-full max-w-md mx-4 relative">
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center gap-2 mb-2">
-          <svg class="w-10 h-10 text-emerald-500" viewBox="0 0 40 40" fill="none"><ellipse cx="16" cy="20" rx="12" ry="8" fill="currentColor"/><path d="M28 20 L38 14 L38 26 Z" fill="currentColor"/><circle cx="12" cy="18" r="2" fill="white"/></svg>
-          <span class="text-3xl font-bold text-emerald-600">FISH</span>
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center gap-2 mb-1">
+          <svg class="w-8 h-8 text-emerald-500" viewBox="0 0 40 40" fill="none"><ellipse cx="16" cy="20" rx="12" ry="8" fill="currentColor"/><path d="M28 20 L38 14 L38 26 Z" fill="currentColor"/><circle cx="12" cy="18" r="2" fill="white"/></svg>
+          <span class="text-2xl font-bold text-emerald-600">FISH</span>
         </div>
-        <p class="text-slate-500">游进世界聊天室，畅聊无限可能</p>
+        <p class="text-slate-500 text-sm">世界聊天室</p>
       </div>
 
       <div id="loginForm">
-        <div class="space-y-4">
-          <div><label class="block text-sm font-medium text-slate-600 mb-2">用户名 <span class="text-slate-400">(英文+数字)</span></label><input type="text" id="loginUsername" class="input-field px-4 py-3" placeholder="例如: fish123"></div>
-          <div><label class="block text-sm font-medium text-slate-600 mb-2">密码 <span class="text-slate-400">(英文+数字)</span></label><input type="password" id="loginPassword" class="input-field px-4 py-3" placeholder="输入密码"></div>
+        <div class="space-y-3">
+          <input type="text" id="loginUsername" class="input-field px-4 py-3" placeholder="用户名 (英文+数字)">
+          <input type="password" id="loginPassword" class="input-field px-4 py-3" placeholder="密码">
         </div>
-        <button onclick="handleLogin()" id="loginBtn" class="btn-primary w-full py-3 mt-6 flex justify-center">登录</button>
-        <p class="text-center text-slate-500 text-sm mt-4">还没有账号？<button onclick="showRegister()" class="text-emerald-600 font-semibold hover:underline">立即注册</button></p>
+        <button onclick="handleLogin()" id="loginBtn" class="btn-primary w-full py-3 mt-4 flex justify-center">登录</button>
+        <p class="text-center text-slate-500 text-sm mt-4">没有账号？<button onclick="showRegister()" class="text-emerald-600 font-semibold">注册</button></p>
       </div>
 
       <div id="registerForm" class="hidden">
-        <div class="space-y-4">
-          <div><label class="block text-sm font-medium text-slate-600 mb-2">用户名 <span class="text-slate-400">(3-16位英文数字)</span></label><input type="text" id="regUsername" class="input-field px-4 py-3" placeholder="例如: player2024"></div>
-          <div><label class="block text-sm font-medium text-slate-600 mb-2">密码 <span class="text-slate-400">(4-20位英文数字)</span></label><input type="password" id="regPassword" class="input-field px-4 py-3" placeholder="设置密码"></div>
+        <div class="space-y-3">
+          <input type="text" id="regUsername" class="input-field px-4 py-3" placeholder="用户名 (3-16位英文数字)">
+          <input type="password" id="regPassword" class="input-field px-4 py-3" placeholder="密码 (4-20位)">
           <div>
-            <label class="block text-sm font-medium text-slate-600 mb-2">选择感兴趣的聊天室（可选，最多3个）</label>
-            <div class="grid grid-cols-2 gap-3" id="roomTypeSelector">
-              <div class="room-type-card" data-id="pet" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🐾</span><span class="font-medium">宠物</span></div>
-              <div class="room-type-card" data-id="travel" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🏔️</span><span class="font-medium">景点</span></div>
-              <div class="room-type-card" data-id="game" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🎮</span><span class="font-medium">游戏</span></div>
-              <div class="room-type-card" data-id="car" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🚗</span><span class="font-medium">汽车</span></div>
-              <div class="room-type-card" data-id="ai" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🤖</span><span class="font-medium">AI</span></div>
-              <div class="room-type-card" data-id="food" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🍜</span><span class="font-medium">美食</span></div>
+            <label class="text-xs text-slate-500 mb-2 block">兴趣房间 (可选)</label>
+            <div class="grid grid-cols-3 gap-2" id="roomTypeSelector">
+              <div class="p-2 border rounded-lg text-center text-xs cursor-pointer hover:border-emerald-400" data-id="pet" onclick="toggleRoomType(this)">🐾 宠物</div>
+              <div class="p-2 border rounded-lg text-center text-xs cursor-pointer hover:border-emerald-400" data-id="travel" onclick="toggleRoomType(this)">🏔️ 景点</div>
+              <div class="p-2 border rounded-lg text-center text-xs cursor-pointer hover:border-emerald-400" data-id="game" onclick="toggleRoomType(this)">🎮 游戏</div>
+              <div class="p-2 border rounded-lg text-center text-xs cursor-pointer hover:border-emerald-400" data-id="car" onclick="toggleRoomType(this)">🚗 汽车</div>
+              <div class="p-2 border rounded-lg text-center text-xs cursor-pointer hover:border-emerald-400" data-id="ai" onclick="toggleRoomType(this)">🤖 AI</div>
+              <div class="p-2 border rounded-lg text-center text-xs cursor-pointer hover:border-emerald-400" data-id="food" onclick="toggleRoomType(this)">🍜 美食</div>
             </div>
           </div>
         </div>
-        <button onclick="handleRegister()" id="registerBtn" class="btn-primary w-full py-3 mt-6 flex justify-center">注册</button>
-        <p class="text-center text-slate-500 text-sm mt-4">已有账号？<button onclick="showLogin()" class="text-emerald-600 font-semibold hover:underline">返回登录</button></p>
+        <button onclick="handleRegister()" id="registerBtn" class="btn-primary w-full py-3 mt-4 flex justify-center">注册</button>
+        <p class="text-center text-slate-500 text-sm mt-4">已有账号？<button onclick="showLogin()" class="text-emerald-600 font-semibold">登录</button></p>
       </div>
     </div>
   </div>
 
   <!-- 主界面 -->
   <div id="mainApp" class="hidden h-screen flex flex-col relative z-10">
-    <header class="card mx-4 mt-4 px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <button onclick="document.getElementById('sidebar').classList.toggle('open')" class="md:hidden p-2 hover:bg-slate-100 rounded-lg">
+    <!-- 顶部栏 (移动端优化) -->
+    <header class="card mx-2 mt-2 md:mx-4 md:mt-4 px-3 py-2 md:px-6 md:py-3 flex items-center justify-between border-b">
+      <div class="flex items-center gap-2">
+        <!-- 移动端菜单按钮 -->
+        <button onclick="openSidebar()" class="mobile-nav p-2 -ml-2 hover:bg-slate-100 rounded-lg">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-        <div class="flex items-center gap-2">
-          <svg class="w-8 h-8 text-emerald-500" viewBox="0 0 40 40" fill="none"><ellipse cx="16" cy="20" rx="12" ry="8" fill="currentColor"/><path d="M28 20 L38 14 L38 26 Z" fill="currentColor"/><circle cx="12" cy="18" r="2" fill="white"/></svg>
-          <span class="text-2xl font-bold text-emerald-600">FISH</span>
-        </div>
+        <svg class="w-6 h-6 md:w-8 md:h-8 text-emerald-500" viewBox="0 0 40 40" fill="none"><ellipse cx="16" cy="20" rx="12" ry="8" fill="currentColor"/><path d="M28 20 L38 14 L38 26 Z" fill="currentColor"/><circle cx="12" cy="18" r="2" fill="white"/></svg>
+        <span class="font-bold text-emerald-600 text-lg md:text-xl">FISH</span>
       </div>
-      <div class="hidden md:flex items-center gap-2 overflow-x-auto" id="roomTags"></div>
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2"><div class="online-dot"></div><span id="onlineCount" class="text-sm font-medium text-slate-600">-- 在线</span></div>
-        <button onclick="openProfile()" class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-50 transition">
-          <div id="userAvatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold"></div>
-          <span id="userName" class="font-medium text-slate-700 hidden sm:block"></span>
+      
+      <div class="flex items-center gap-2 md:gap-4">
+        <!-- 移动端：右侧面板按钮 -->
+        <button onclick="openRightPanel()" class="chat-header-actions p-2 hover:bg-slate-100 rounded-lg" title="统计/成员">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        </button>
+        
+        <div class="flex items-center gap-1 text-xs md:text-sm"><div class="online-dot"></div><span id="onlineCount">-- 在线</span></div>
+        <button onclick="openProfile()" class="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-50">
+          <div id="userAvatar" class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold"></div>
+          <span id="userName" class="font-medium text-sm hidden md:block"></span>
         </button>
       </div>
     </header>
 
-    <div class="flex-1 flex gap-4 p-4 overflow-hidden">
-      <aside id="sidebar" class="sidebar card w-72 flex-shrink-0 flex flex-col overflow-hidden">
-        <div class="p-4 border-b border-slate-100">
-          <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-slate-800">聊天室排行</h3>
-            <span class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">已加入 <span id="joinedCount">0</span>/3</span>
+    <div class="flex-1 flex overflow-hidden">
+      <!-- 左侧：房间列表 -->
+      <aside id="sidebar" class="sidebar card w-72 flex-shrink-0 flex flex-col md:m-2 md:mr-0 z-60">
+        <div class="p-3 border-b flex justify-between items-center">
+          <div>
+            <h3 class="font-semibold text-sm">聊天室</h3>
+            <p class="text-xs text-slate-400">已加入 <span id="joinedCount">1</span>/4</p>
           </div>
-          <p class="text-xs text-slate-500 mt-2">按摸鱼成就等级排序</p>
-        </div>
-        <div class="flex-1 overflow-y-auto p-3" id="allRoomsList"></div>
-      </aside>
-
-      <main class="card flex-1 flex flex-col overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div id="currentRoomIcon" class="room-icon bg-emerald-100"><span class="text-xl">🌐</span></div>
-            <div><h2 id="currentRoomName" class="font-semibold text-slate-800">世界聊天室</h2><p id="currentRoomDesc" class="text-xs text-slate-500">和全世界的人一起畅聊</p></div>
-          </div>
-          <button onclick="toggleMemberList()" class="p-2 hover:bg-slate-50 rounded-lg md:hidden">
-            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <button onclick="closeSidebar()" class="mobile-nav p-1 hover:bg-slate-100 rounded md:hidden">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-        <div id="messageList" class="flex-1 overflow-y-auto px-6 py-4 space-y-4"></div>
-        <div class="px-6 py-4 border-t border-slate-100">
-          <div class="flex items-end gap-2">
-            <div class="relative">
-              <button onclick="toggleEmojiPicker()" class="p-3 hover:bg-slate-100 rounded-xl text-xl">😊</button>
-              <div id="emojiPicker" class="emoji-picker hidden">
-                <div class="p-3 max-h-48 overflow-y-auto"><div class="emoji-grid" id="emojiGrid"></div></div>
-              </div>
-            </div>
-            <div class="flex-1"><textarea id="messageInput" class="input-field px-4 py-3 resize-none" placeholder="说点什么..." rows="1" onkeydown="handleKeyDown(event)" oninput="autoResize(this)"></textarea></div>
-            <button onclick="sendMessage()" id="sendBtn" class="btn-primary px-5 py-3 flex items-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-              <span class="hidden sm:inline">发送</span>
-            </button>
+        <div class="flex-1 overflow-y-auto p-2 space-y-1" id="roomList"></div>
+      </aside>
+
+      <!-- 中间：聊天区 -->
+      <main class="flex-1 flex flex-col overflow-hidden md:m-2 card">
+        <div class="px-3 py-2 border-b flex items-center gap-2">
+          <div id="currentRoomIcon" class="room-icon bg-slate-100"><span class="text-base">🌐</span></div>
+          <div class="flex-1 min-w-0">
+            <h2 id="roomTitle" class="font-semibold text-sm truncate">世界聊天室</h2>
+            <p id="roomDesc" class="text-xs text-slate-400 truncate">和全世界畅聊</p>
           </div>
+          <!-- 游戏按钮 -->
+          <button onclick="openGame()" class="p-2 hover:bg-slate-100 rounded-lg text-lg" title="小游戏">♟️</button>
+        </div>
+        
+        <div id="messageList" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+        
+        <div class="p-2 border-t flex items-end gap-1">
+          <button onclick="toggleEmoji()" class="p-2 text-lg">😊</button>
+          <div id="emojiBox" class="hidden absolute bottom-14 left-2 card p-2 shadow-xl z-20 emoji-grid w-56 h-40 overflow-y-auto"></div>
+          <textarea id="msgInput" class="input-field flex-1 px-3 py-2 text-sm resize-none" rows="1" placeholder="说点什么..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
+          <button onclick="send()" class="btn-primary px-3 py-2 text-sm">发送</button>
         </div>
       </main>
 
-      <aside id="memberList" class="card w-64 flex-shrink-0 overflow-hidden hidden md:flex flex-col">
-        <div class="p-4 border-b border-slate-100 bg-gradient-to-br from-emerald-50 to-teal-50">
-          <div class="flex items-center gap-2 mb-3"><span class="text-lg">🐟</span><h3 class="font-semibold text-slate-800">摸鱼统计</h3></div>
-          <div class="space-y-2">
-            <div class="flex justify-between items-center"><span class="text-xs text-slate-500">摸鱼人数</span><span id="statFishers" class="font-bold text-emerald-600">--</span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-slate-500">累计时间</span><span id="statTotalTime" class="font-bold text-emerald-600">-- 分钟</span></div>
-            <div class="pt-2 border-t border-emerald-100">
-              <div class="flex justify-between items-center mb-1"><span class="text-xs text-slate-500">摸鱼成就</span></div>
-              <div id="achievementBadge" class="achievement-badge achievement-1"><span id="achievementIcon">🐠</span><span id="achievementName">小鱼</span></div>
+      <!-- 右侧：统计/成员 (移动端为滑出面板) -->
+      <aside id="rightPanel" class="right-panel card w-64 flex-shrink-0 flex flex-col md:m-2 md:ml-0 z-60 overflow-hidden">
+        <div class="p-3 border-b flex justify-between items-center">
+          <h3 class="font-semibold text-sm">摸鱼统计</h3>
+          <button onclick="closeRightPanel()" class="mobile-nav p-1 hover:bg-slate-100 rounded md:hidden">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        
+        <!-- 摸鱼累计模版 -->
+        <div class="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 border-b">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-slate-500">累计摸鱼</span>
+            <div id="achievementBadge" class="achievement-badge achievement-1"><span id="achIcon">🐠</span></div>
+          </div>
+          <div class="text-center mb-2">
+            <span id="statTotalTime" class="text-3xl font-bold text-emerald-600">0</span>
+            <span class="text-sm text-slate-400">分钟</span>
+          </div>
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs"><span>下一等级</span><span id="nextLevel">500分钟</span></div>
+            <div class="h-2 bg-white rounded-full overflow-hidden">
+              <div id="progressBar" class="h-full bg-emerald-400 transition-all" style="width:0%"></div>
             </div>
           </div>
         </div>
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between"><h3 class="font-semibold text-slate-800">在线成员</h3><span id="memberCount" class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">--人</span></div>
-        <div class="flex-1 overflow-y-auto p-3 space-y-2" id="memberListContent"></div>
+
+        <div class="p-3 border-b flex justify-between items-center">
+          <h4 class="font-semibold text-sm">在线成员</h4>
+          <span id="memberCount" class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">0</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-2 space-y-1" id="memberList"></div>
       </aside>
     </div>
+    
+    <!-- 移动端底部导航 -->
+    <nav class="mobile-nav fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2 z-40 md:hidden">
+      <button onclick="openSidebar()" class="flex flex-col items-center text-xs text-slate-600"><svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>房间</button>
+      <button onclick="openFeedback()" class="flex flex-col items-center text-xs text-slate-600"><svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>反馈</button>
+      <button onclick="openProfile()" class="flex flex-col items-center text-xs text-slate-600"><svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>我的</button>
+    </nav>
   </div>
 
-  <!-- 资讯详情模态框 -->
-  <div id="newsModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
-    <div class="modal-content card p-6 w-full max-w-2xl mx-4 max-h-[85vh] overflow-hidden flex flex-col">
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3"><div id="newsModalIcon" class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center"><span class="text-xl">📰</span></div><div><h3 id="newsModalTitle" class="text-lg font-semibold text-slate-800">每日资讯</h3><p id="newsModalSubtitle" class="text-xs text-slate-500">今日热点一览</p></div></div>
-        <button onclick="closeNewsModal()" class="p-2 hover:bg-slate-100 rounded-lg"><svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+  <!-- 个人中心 -->
+  <div id="profileModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+    <div class="card p-6 w-80 mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4"><h3 class="font-semibold">个人中心</h3><button onclick="closeProfile()" class="text-xl text-slate-300 hover:text-slate-500">&times;</button></div>
+      <div class="text-center mb-4">
+        <div id="profileAvatar" class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-1"></div>
+        <div id="profileName" class="font-semibold"></div>
       </div>
-      <div class="flex-1 overflow-y-auto space-y-3 pr-2" id="newsModalContent"></div>
+      <div class="bg-emerald-50 rounded-xl p-3 mb-4 text-sm grid grid-cols-3 text-center">
+        <div><div class="font-bold text-emerald-600" id="pWords">0</div><div class="text-slate-400 text-xs">字数</div></div>
+        <div><div class="font-bold text-pink-500" id="pTime">0</div><div class="text-slate-400 text-xs">分钟</div></div>
+        <div><div class="font-bold text-amber-500" id="pDays">0</div><div class="text-slate-400 text-xs">签到</div></div>
+      </div>
+      <div class="mb-4">
+        <div class="flex justify-between items-center mb-2"><span class="text-sm font-medium">打卡日历</span><button onclick="checkin()" id="checkinBtn" class="btn-secondary text-xs px-3 py-1">签到</button></div>
+        <div id="calendar" class="grid grid-cols-7 gap-1"></div>
+      </div>
+      <button onclick="logout()" class="w-full py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm">退出登录</button>
     </div>
   </div>
 
-  <!-- 个人中心模态框 -->
-  <div id="profileModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
-    <div class="modal-content card p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-semibold text-slate-800">个人中心</h3><button onclick="closeProfile()" class="p-2 hover:bg-slate-100 rounded-lg"><svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
-      <div class="text-center mb-6">
-        <div id="profileAvatar" class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3"></div>
-        <h4 id="profileName" class="font-semibold text-lg text-slate-800"></h4>
-        <p class="text-sm text-slate-500">摸鱼达人</p>
+  <!-- 意见反馈模态框 -->
+  <div id="feedbackModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+    <div class="card p-6 w-80 mx-4">
+      <div class="flex justify-between items-center mb-4"><h3 class="font-semibold">意见反馈</h3><button onclick="closeFeedback()" class="text-xl text-slate-300 hover:text-slate-500">&times;</button></div>
+      <div class="space-y-3">
+        <select id="feedbackType" class="input-field px-3 py-2 text-sm">
+          <option value="bug">问题反馈</option>
+          <option value="suggestion">功能建议</option>
+          <option value="other">其他</option>
+        </select>
+        <textarea id="feedbackContent" class="input-field px-3 py-2 text-sm h-24 resize-none" placeholder="请描述您的问题或建议..."></textarea>
+        <button onclick="submitFeedback()" id="feedbackBtn" class="btn-primary w-full py-2 text-sm">提交反馈</button>
       </div>
-      <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 mb-6">
-        <h5 class="font-semibold text-slate-800 mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>个人摸鱼统计</h5>
-        <div class="grid grid-cols-3 gap-4 text-center">
-          <div><div class="stat-number text-2xl text-emerald-600" id="statWords">0</div><div class="text-xs text-slate-500 mt-1">发送字数</div></div>
-          <div><div class="stat-number text-2xl text-pink-500" id="statTime">0</div><div class="text-xs text-slate-500 mt-1">摸鱼(分钟)</div></div>
-          <div><div class="stat-number text-2xl text-amber-500" id="statDays">0</div><div class="text-xs text-slate-500 mt-1">连续签到</div></div>
+    </div>
+  </div>
+
+  <!-- 五子棋模态框 -->
+  <div id="gameModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+    <div class="card p-4 w-full max-w-sm mx-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-semibold">五子棋</h3>
+        <div class="flex items-center gap-2">
+          <span id="gameStatus" class="text-xs bg-slate-100 px-2 py-1 rounded">黑棋回合</span>
+          <button onclick="closeGame()" class="text-xl text-slate-300 hover:text-slate-500">&times;</button>
         </div>
       </div>
-      <div class="mb-6">
-        <div class="flex items-center justify-between mb-4"><h5 class="font-semibold text-slate-800 flex items-center gap-2"><svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>摸鱼打卡</h5><button onclick="doCheckin()" id="checkinBtn" class="btn-secondary px-4 py-2 text-sm">签到</button></div>
-        <div class="grid grid-cols-7 gap-2" id="checkinCalendar"></div>
+      <div id="gameBoard" class="game-board mx-auto" style="width: 308px;"></div>
+      <div class="flex justify-center gap-2 mt-3">
+        <button onclick="resetGame()" class="btn-secondary text-xs px-4 py-1.5">重新开始</button>
+        <button onclick="closeGame()" class="btn-primary text-xs px-4 py-1.5">关闭</button>
       </div>
-      <button onclick="handleLogout()" class="w-full py-3 text-red-500 font-medium hover:bg-red-50 rounded-xl transition">退出登录</button>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="warningToast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden"><div class="card px-6 py-4 border-l-4 border-red-500 flex items-center gap-3"><svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span class="text-slate-700" id="toastMessage">提示信息</span></div></div>
+  <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 card px-4 py-2 hidden z-50 border-l-4 border-red-400 text-sm"></div>
 
 <script>
 // ============================================================
-// 【重要】配置 Supabase
+// 配置 Supabase
 // ============================================================
 const SUPABASE_URL = 'https://xgsmfikhstlxingnzcdf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnc21maWtoc3RseGluZ256Y2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2OTI4NzYsImV4cCI6MjA4ODI2ODg3Nn0.gghyf7F7Wqspd3GzkSQb1DCY_yW5Vq8lmiIWDnR9TPE';
-
-const { createClient } = window.supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============================================================
-// 数据定义
+// 状态与数据
 // ============================================================
-const emojiData = { 
-  smileys: ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐'], 
-  gestures: ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','🙏','💪'], 
-  hearts: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','❤️‍🔥','✨','🌟','⭐','💫','🎈','🎉','🎊','🎀','🎁'] 
-};
-let currentEmojiCategory = 'smileys';
-
-// 根据聊天室类别随机生成用户名和头像
-const memberNamesData = {
-  world: { 
-    names: ['小明', '小红', 'James', 'Emma', '田中', '佐藤', 'Pierre', 'Hans', 'Giovanni', 'Carlos', 'Ahmed', 'Fatima', 'Michael', 'Sophia', 'William', 'Olivia'], 
-    avatars: ['🌏', '🌎', '🌍', '🧑‍🦱', '👨', '👩', '🧔', '👱', '👸', '🤴', '👳', '👲', '🧕', '👱‍♀️', '👨‍🦰', '👩‍🦰'], 
-    avatarClasses: ['avatar-world-1', 'avatar-world-2', 'avatar-world-3', 'avatar-world-4', 'avatar-world-5'] 
-  },
-  pet: { 
-    names: ['哈士奇', '柯基', '金毛', '拉布拉多', '萨摩耶', '泰迪', '比熊', '边牧', '德牧', '杜宾', '布偶猫', '英短', '美短', '暹罗猫', '波斯猫', '缅因猫', '橘猫', '狸花猫', '蓝猫', '加菲猫', '仓鼠', '龙猫', '荷兰猪', '兔子'], 
-    avatars: ['🐕', '🐶', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '😺', '😸', '😻', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨'], 
-    avatarClasses: ['avatar-pet-1', 'avatar-pet-2', 'avatar-pet-3'] 
-  },
-  travel: { 
-    names: ['故宫', '长城', '西湖', '黄山', '九寨沟', '张家界', '桂林', '丽江', '大理', '三亚', '富士山', '济州岛', '巴厘岛', '马尔代夫', '普吉岛', '夏威夷', '巴黎', '伦敦', '东京', '悉尼', '背包客', '独行侠', '自驾游'], 
-    avatars: ['🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🌅', '🌄', '🌠', '🎇', '🎆', '🌁', '🌃'], 
-    avatarClasses: ['avatar-travel-1', 'avatar-travel-2'] 
-  },
-  game: { 
-    names: ['刺客信条', '暗黑骑士', '神射手', '魔法师', '召唤师', '圣骑士', '狂战士', '奶妈', '坦克', '输出位', '氪金大佬', '肝帝', '欧皇', '非酋', '带飞王', '王者', '原神', '塞尔达', 'MC玩家', '吃鸡王'], 
-    avatars: ['🎮', '🕹️', '👾', '🤖', '🧙', '🧝', '🧛', '🧟', '🦸', '🦹', '💂', '🥷', '🏹', '⚔️', '🛡️', '🔫'], 
-    avatarClasses: ['avatar-game-1', 'avatar-game-2', 'avatar-game-3'] 
-  },
-  car: { 
-    names: ['奔驰', '宝马', '奥迪', '保时捷', '法拉利', '兰博基尼', '特斯拉', '比亚迪', '蔚来', '理想', '小鹏', '丰田', '本田', '日产', '马自达', '大众', '改装车', '越野族', '老司机'], 
-    avatars: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🛻', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵'], 
-    avatarClasses: ['avatar-car-1', 'avatar-car-2'] 
-  },
-  ai: { 
-    names: ['ChatGPT', 'Claude', 'Gemini', 'Copilot', '文心一言', '通义千问', '讯飞星火', 'Kimi', '豆包', 'Stable', 'Midjourney', '算法工程师', '数据科学家', 'Prompt工程师', 'AI产品经理', 'Transformer', 'LLM', 'AGI'], 
-    avatars: ['🤖', '🧠', '💻', '🖥️', '⌨️', '📱', '🔮', '🧬', '🔬', '🔭', '📡', '💾', '💿', '🧮', '📊', '📈'], 
-    avatarClasses: ['avatar-ai-1', 'avatar-ai-2'] 
-  },
-  food: { 
-    names: ['火锅', '烧烤', '麻辣烫', '冒菜', '串串香', '小龙虾', '螺蛳粉', '臭豆腐', '饺子', '馄饨', '寿司', '刺身', '拉面', '泡菜', '炸鸡', '牛排', '披萨', '汉堡', '蛋糕', '奶茶', '咖啡', '吃货一枚'], 
-    avatars: ['🍜', '🍝', '🍲', '🍛', '🍣', '🍱', '🥟', '🍤', '🍙', '🍚', '🍘', '🍢', '🥘', '🥙', '🥪', '🌮'], 
-    avatarClasses: ['avatar-food-1', 'avatar-food-2'] 
-  }
-};
-
-const achievementLevels = [
-  { name: '小鱼', icon: '🐠', minMinutes: 0, class: 'achievement-1' },
-  { name: '大鱼', icon: '🐟', minMinutes: 500, class: 'achievement-2' },
-  { name: '海豚', icon: '🐬', minMinutes: 1000, class: 'achievement-3' },
-  { name: '鲨鱼', icon: '🦈', minMinutes: 1500, class: 'achievement-4' },
-  { name: '鲸鱼', icon: '🐋', minMinutes: 2000, class: 'achievement-5' }
-];
-
-function getAchievement(minutes) {
-  let level = achievementLevels[0];
-  for (let i = achievementLevels.length - 1; i >= 0; i--) { if (minutes >= achievementLevels[i].minMinutes) { level = achievementLevels[i]; break; } }
-  return { ...level, levelIndex: achievementLevels.indexOf(level) + 1 };
-}
-
-const roomStatsData = { world: { users: 0, minutes: 2450 }, game: { users: 0, minutes: 1820 }, ai: { users: 0, minutes: 1350 }, pet: { users: 0, minutes: 980 }, food: { users: 0, minutes: 720 }, travel: { users: 0, minutes: 450 }, car: { users: 0, minutes: 280 } };
-
-const roomTypes = [
-  { id: 'world', name: '世界聊天', emoji: '🌐', desc: '和全世界的人一起畅聊', color: 'emerald', isWorld: true },
-  { id: 'pet', name: '宠物乐园', emoji: '🐾', desc: '分享你的萌宠日常', color: 'pink' },
-  { id: 'travel', name: '景点探索', emoji: '🏔️', desc: '发现世界的美景', color: 'blue' },
-  { id: 'game', name: '游戏世界', emoji: '🎮', desc: '组队开黑聊游戏', color: 'purple' },
-  { id: 'car', name: '汽车之家', emoji: '🚗', desc: '车友交流天地', color: 'orange' },
-  { id: 'ai', name: 'AI前沿', emoji: '🤖', desc: '探讨人工智能未来', color: 'cyan' },
-  { id: 'food', name: '美食天地', emoji: '🍜', desc: '吃货的快乐老家', color: 'red' }
-];
-
-const newsData = {
-  world: [ { title: '全球气候峰会达成新协议', summary: '195个国家就减排目标达成一致', time: '2小时前', hot: true }, { title: '国际空间站迎来新成员', summary: '宇航员成功对接空间站', time: '3小时前' }, { title: '世界杯预选赛最新战报', summary: '多支强队遭遇失利', time: '6小时前', hot: true } ],
-  pet: [ { title: '养宠物有助于缓解焦虑', summary: '研究表明与宠物互动可降低压力', time: '1小时前', hot: true }, { title: '最受欢迎宠物品种公布', summary: '柯基首次登顶', time: '3小时前', hot: true } ],
-  travel: [ { title: '最佳旅游目的地榜单', summary: '冰岛北部小镇登顶', time: '2小时前', hot: true }, { title: '签证便利化政策实施', summary: '多国开放电子签证', time: '4小时前' } ],
-  game: [ { title: '国产3A大作销量破千万', summary: '创造历史记录', time: '1小时前', hot: true }, { title: 'Steam夏季促销开启', summary: '数千款游戏折扣', time: '3小时前', hot: true } ],
-  car: [ { title: '新能源车销量再创新高', summary: '同比增长45%', time: '2小时前', hot: true }, { title: '固态电池量产时间确定', summary: '2025年搭载', time: '4小时前' } ],
-  ai: [ { title: 'GPT-5发布时间确定', summary: '今年Q4发布', time: '30分钟前', hot: true }, { title: '国产大模型榜单更新', summary: '文心一言领跑', time: '2小时前', hot: true } ],
-  food: [ { title: '米其林新榜单发布', summary: '新增8家三星餐厅', time: '1小时前', hot: true }, { title: '网红餐厅避坑指南', summary: '必吃榜真相揭秘', time: '3小时前', hot: true } ]
-};
-
-const sensitiveWords = ['傻逼', '操', '妈的', 'fuck', 'shit', 'damn', '黄', '赌', '毒'];
-
-// 状态变量
-let currentUser = null;
-let currentRoom = 'world';
-let joinedRooms = ['world'];
-let selectedRoomTypes = [];
-let totalWords = 0;
-let onlineTime = 0;
-let checkinDays = [];
-let onlineTimer = null;
-let heartbeatTimer = null;
-let expandedNews = {};
+let currentUser = null, currentRoom = 'world', joinedRooms = ['world'], selectedRooms = [];
+let totalWords = 0, onlineTime = 0, checkinDays = [];
 let msgChannel = null;
-let usersChannel = null;
-let currentDisplayName = ''; // 当前聊天室显示名称
-let currentDisplayAvatar = ''; // 当前聊天室显示头像
-let currentDisplayAvatarClass = ''; // 当前聊天室头像样式
+let displayName = '', displayAvatar = '', displayAvatarClass = '';
+let gameBoard = [], currentPlayer = 1, gameOver = false; // 1=黑, 2=白
+
+const rooms = [
+  { id: 'world', name: '世界', emoji: '🌐', desc: '和全世界畅聊' },
+  { id: 'pet', name: '宠物', emoji: '🐾', desc: '萌宠日常' },
+  { id: 'game', name: '游戏', emoji: '🎮', desc: '组队开黑' },
+  { id: 'ai', name: 'AI', emoji: '🤖', desc: 'AI探讨' },
+  { id: 'food', name: '美食', emoji: '🍜', desc: '吃货天堂' }
+];
+const achievements = [
+  { name: '小鱼', icon: '🐠', mins: 0 },
+  { name: '大鱼', icon: '🐟', mins: 500 },
+  { name: '海豚', icon: '🐬', mins: 1000 },
+  { name: '鲨鱼', icon: '🦈', mins: 1500 },
+  { name: '鲸鱼', icon: '🐋', mins: 2000 }
+];
+const emojis = ['😀','😂','🤣','😊','😍','🥰','😘','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','👍','👎','👏','🙌','👐','🤲','🤝','🙏','💪','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝'];
+const memberData = {
+  world: { names: ['James','Emma','田中','Pierre','Hans','小明'], avatars: ['🌏','🌎','🌍','👨','👩','🧑'], classes: ['avatar-world-1','avatar-world-2'] },
+  pet: { names: ['哈士奇','柯基','布偶猫','橘猫','仓鼠'], avatars: ['🐕','🐶','🐈','😺','🐹'], classes: ['avatar-pet-1'] },
+  game: { names: ['刺客','法师','坦克','欧皇'], avatars: ['🎮','🕹️','👾','🧙'], classes: ['avatar-game-1'] },
+  ai: { names: ['ChatGPT','Claude','算法'], avatars: ['🤖','🧠','💻'], classes: ['avatar-ai-1'] },
+  food: { names: ['火锅','奶茶','吃货'], avatars: ['🍜','🧋','🍣'], classes: ['avatar-food-1'] }
+};
 
 // ============================================================
 // 初始化
 // ============================================================
 async function init() {
-  const savedUser = localStorage.getItem('fishUser');
-  if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    const { data } = await db.from('users').select('*').eq('id', currentUser.id).single();
+  const saved = localStorage.getItem('fish_user');
+  if (saved) {
+    const u = JSON.parse(saved);
+    const { data } = await db.from('users').select('*').eq('id', u.id).single();
     if (data) {
       currentUser = data;
-      joinedRooms = currentUser.joined_rooms || ['world'];
-      totalWords = currentUser.total_words || 0;
-      onlineTime = currentUser.online_time || 0;
-      checkinDays = currentUser.checkin_days || [];
-      
-      // 设置在线状态
-      await setOnlineStatus(true);
-      
-      showMainApp();
+      joinedRooms = data.joined_rooms || ['world'];
+      totalWords = data.total_words || 0;
+      onlineTime = data.online_time || 0;
+      checkinDays = data.checkin_days || [];
+      await db.from('users').update({ is_online: true, last_seen: new Date().toISOString() }).eq('id', currentUser.id);
+      showMain();
       return;
     }
   }
@@ -421,423 +379,273 @@ async function init() {
   document.getElementById('authModal').classList.add('flex');
 }
 
-// 设置在线状态
-async function setOnlineStatus(isOnline) {
-  if (!currentUser) return;
-  await db.from('users').update({ 
-    is_online: isOnline, 
-    last_seen: new Date().toISOString() 
-  }).eq('id', currentUser.id);
-}
-
-// 心跳检测 - 每30秒更新一次在线状态
-function startHeartbeat() {
-  if (heartbeatTimer) clearInterval(heartbeatTimer);
-  heartbeatTimer = setInterval(async () => {
-    if (currentUser) {
-      await db.from('users').update({ last_seen: new Date().toISOString() }).eq('id', currentUser.id);
-    }
-  }, 30000);
-}
-
-// 生成当前聊天室的随机显示名和头像
-function generateRandomProfile(roomId) {
-  const data = memberNamesData[roomId] || memberNamesData.world;
-  const randomIndex = Math.floor(Math.random() * data.names.length);
-  const avatarIndex = Math.floor(Math.random() * data.avatars.length);
-  const classIndex = Math.floor(Math.random() * data.avatarClasses.length);
-  
-  currentDisplayName = data.names[randomIndex];
-  currentDisplayAvatar = data.avatars[avatarIndex];
-  currentDisplayAvatarClass = data.avatarClasses[classIndex];
-}
-
-function startOnlineTimer() {
-  if (onlineTimer) clearInterval(onlineTimer);
-  onlineTimer = setInterval(async () => {
-    if (currentUser) {
-      onlineTime++;
-      roomStatsData[currentRoom].minutes++;
-      updateRoomStats();
-      if (onlineTime % 5 === 0) await db.from('users').update({ online_time: onlineTime }).eq('id', currentUser.id);
-    }
-  }, 60000);
-}
-
-function updateRoomStats() {
-  const stats = roomStatsData[currentRoom];
-  if (stats) {
-    const achievement = getAchievement(stats.minutes);
-    document.getElementById('statFishers').textContent = stats.users || '--';
-    document.getElementById('statTotalTime').textContent = `${stats.minutes} 分钟`;
-    document.getElementById('achievementIcon').textContent = achievement.icon;
-    document.getElementById('achievementName').textContent = achievement.name;
-    document.getElementById('achievementBadge').className = `achievement-badge ${achievement.class}`;
-  }
-}
-
-// ============================================================
-// 表情选择器
-// ============================================================
-function toggleEmojiPicker() { const picker = document.getElementById('emojiPicker'); picker.classList.toggle('hidden'); if (!picker.classList.contains('hidden')) renderEmojiGrid(); }
-function renderEmojiGrid() { const grid = document.getElementById('emojiGrid'); const emojis = emojiData[currentEmojiCategory] || emojiData.smileys; grid.innerHTML = emojis.map(emoji => `<div class="emoji-item" onclick="insertEmoji('${emoji}')">${emoji}</div>`).join(''); }
-function insertEmoji(emoji) { const input = document.getElementById('messageInput'); const start = input.selectionStart; input.value = input.value.substring(0, start) + emoji + input.value.substring(input.selectionEnd); input.selectionStart = input.selectionEnd = start + emoji.length; input.focus(); autoResize(input); }
-document.addEventListener('click', (e) => { const picker = document.getElementById('emojiPicker'); if (picker && !picker.contains(e.target) && !e.target.closest('button')) picker.classList.add('hidden'); });
-
 // ============================================================
 // 登录注册
 // ============================================================
 function showLogin() { document.getElementById('loginForm').classList.remove('hidden'); document.getElementById('registerForm').classList.add('hidden'); }
 function showRegister() { document.getElementById('loginForm').classList.add('hidden'); document.getElementById('registerForm').classList.remove('hidden'); }
-function toggleRoomType(el) { const type = el.dataset.id; if (el.classList.contains('selected')) { el.classList.remove('selected'); selectedRoomTypes = selectedRoomTypes.filter(t => t !== type); } else { if (selectedRoomTypes.length < 3) { el.classList.add('selected'); selectedRoomTypes.push(type); } else showToast('最多只能选择3个聊天室类型'); } }
+function toggleRoomType(el) { if(el.classList.contains('bg-emerald-100')) { el.classList.remove('bg-emerald-100','border-emerald-400'); selectedRooms = selectedRooms.filter(i=>i!==el.dataset.id); } else { if(selectedRooms.length<3){ el.classList.add('bg-emerald-100','border-emerald-400'); selectedRooms.push(el.dataset.id); } else toast('最多3个'); } }
 
 async function handleLogin() {
-  const username = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const validation = validateCredentials(username, password);
-  if (!validation.valid) { showToast(validation.message); return; }
-  setButtonLoading('loginBtn', true);
-  const { data } = await db.from('users').select('*').eq('username', username).eq('password', password).single();
-  setButtonLoading('loginBtn', false);
-  if (data) {
-    currentUser = data;
-    joinedRooms = currentUser.joined_rooms || ['world'];
-    totalWords = currentUser.total_words || 0;
-    onlineTime = currentUser.online_time || 0;
-    checkinDays = currentUser.checkin_days || [];
-    localStorage.setItem('fishUser', JSON.stringify(currentUser));
-    await setOnlineStatus(true);
-    showMainApp();
-  } else showToast('用户名或密码错误');
+  const u = document.getElementById('loginUsername').value.trim();
+  const p = document.getElementById('loginPassword').value;
+  if(!/^[a-zA-Z0-9]{3,}$/.test(u) || !/^[a-zA-Z0-9]{4,}$/.test(p)) return toast('格式错误');
+  setLoading('loginBtn', true);
+  const { data } = await db.from('users').select('*').eq('username', u).eq('password', p).single();
+  setLoading('loginBtn', false);
+  if (data) { currentUser = data; joinedRooms = data.joined_rooms||['world']; totalWords = data.total_words||0; onlineTime = data.online_time||0; checkinDays = data.checkin_days||[]; localStorage.setItem('fish_user', JSON.stringify(currentUser)); await db.from('users').update({ is_online: true }).eq('id', currentUser.id); showMain(); }
+  else toast('账号或密码错误');
 }
-
 async function handleRegister() {
-  const username = document.getElementById('regUsername').value.trim();
-  const password = document.getElementById('regPassword').value;
-  const validation = validateCredentials(username, password);
-  if (!validation.valid) { showToast(validation.message); return; }
-  setButtonLoading('registerBtn', true);
-  const { data: exist } = await db.from('users').select('username').eq('username', username).single();
-  if (exist) { showToast('用户名已存在'); setButtonLoading('registerBtn', false); return; }
-  const rooms = ['world', ...selectedRoomTypes.slice(0, 3)];
-  const { data } = await db.from('users').insert({ username, password, joined_rooms: rooms, is_online: true }).select().single();
-  setButtonLoading('registerBtn', false);
-  if (data) {
-    currentUser = data;
-    localStorage.setItem('fishUser', JSON.stringify(currentUser));
-    joinedRooms = rooms;
-    showMainApp();
-  } else showToast('注册失败');
+  const u = document.getElementById('regUsername').value.trim();
+  const p = document.getElementById('regPassword').value;
+  if(!/^[a-zA-Z0-9]{3,16}$/.test(u) || !/^[a-zA-Z0-9]{4,20}$/.test(p)) return toast('格式错误');
+  setLoading('registerBtn', true);
+  const { data: exist } = await db.from('users').select('username').eq('username', u).single();
+  if (exist) { setLoading('registerBtn', false); return toast('用户名已存在'); }
+  const { data } = await db.from('users').insert({ username: u, password: p, joined_rooms: ['world', ...selectedRooms], is_online: true }).select().single();
+  setLoading('registerBtn', false);
+  if (data) { currentUser = data; joinedRooms = data.joined_rooms; localStorage.setItem('fish_user', JSON.stringify(currentUser)); showMain(); }
+  else toast('注册失败');
 }
+function setLoading(id, load) { const b = document.getElementById(id); b.disabled = load; b.innerHTML = load ? '<span class="loading-spinner"></span>' : (id === 'loginBtn' ? '登录' : '注册'); }
 
-function validateCredentials(username, password) {
-  const alphanumericRegex = /^[a-zA-Z0-9]+$/;
-  if (!username || !password) return { valid: false, message: '请填写完整信息' };
-  if (!alphanumericRegex.test(username)) return { valid: false, message: '用户名只能包含英文和数字' };
-  if (username.length < 3) return { valid: false, message: '用户名至少3个字符' };
-  if (!alphanumericRegex.test(password)) return { valid: false, message: '密码只能包含英文和数字' };
-  if (password.length < 4) return { valid: false, message: '密码至少4个字符' };
-  return { valid: true };
-}
-
-function setButtonLoading(btnId, loading) {
-  const btn = document.getElementById(btnId);
-  if (loading) { btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span>'; }
-  else { btn.disabled = false; btn.innerHTML = btnId === 'loginBtn' ? '登录' : '注册'; }
-}
-
-async function handleLogout() {
-  await setOnlineStatus(false);
-  if (currentUser) await db.from('users').update({ online_time: onlineTime, total_words: totalWords, checkin_days: checkinDays }).eq('id', currentUser.id);
-  if (msgChannel) await db.removeChannel(msgChannel);
-  if (usersChannel) await db.removeChannel(usersChannel);
-  if (heartbeatTimer) clearInterval(heartbeatTimer);
-  currentUser = null; localStorage.removeItem('fishUser');
-  document.getElementById('authModal').classList.remove('hidden');
-  document.getElementById('authModal').classList.add('flex');
-  document.getElementById('mainApp').classList.add('hidden');
-  closeProfile();
+async function logout() {
+  if(currentUser) await db.from('users').update({ is_online: false, online_time: onlineTime, total_words: totalWords }).eq('id', currentUser.id);
+  localStorage.removeItem('fish_user');
+  location.reload();
 }
 
 // ============================================================
 // 主界面
 // ============================================================
-function showMainApp() {
-  document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').classList.remove('flex');
+function showMain() {
+  document.getElementById('authModal').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
   document.getElementById('userName').textContent = currentUser.username;
   document.getElementById('userAvatar').textContent = currentUser.username[0].toUpperCase();
-  
-  // 生成初始随机身份
-  generateRandomProfile(currentRoom);
-  
-  renderAllRooms(); renderRoomTags(); renderMessages(); updateJoinedCount(); updateRoomStats();
+  generateProfile(currentRoom);
+  renderRooms();
   switchRoom(currentRoom);
-  startOnlineTimer();
-  startHeartbeat();
+  startTimers();
 }
 
-function renderAllRooms() {
-  const container = document.getElementById('allRoomsList');
-  const extraJoinedCount = joinedRooms.filter(r => r !== 'world').length;
-  const canJoinMore = extraJoinedCount < 3;
-  const sortedRoomTypes = [...roomTypes].sort((a, b) => getAchievement(roomStatsData[b.id]?.minutes || 0).levelIndex - getAchievement(roomStatsData[a.id]?.minutes || 0).levelIndex);
-  
-  container.innerHTML = sortedRoomTypes.map((room, idx) => {
-    const isJoined = joinedRooms.includes(room.id);
-    const isActive = currentRoom === room.id;
-    const stats = roomStatsData[room.id] || { users: 0, minutes: 0 };
-    const achievement = getAchievement(stats.minutes);
-    const colorMap = { emerald: 'bg-emerald-100', pink: 'bg-pink-100', blue: 'bg-blue-100', purple: 'bg-purple-100', orange: 'bg-orange-100', cyan: 'bg-cyan-100', red: 'bg-red-100' };
-    
-    let actionsHtml = '';
-    if (room.isWorld) actionsHtml = '<span class="world-badge">固定</span>';
-    else if (isJoined) actionsHtml = `<button class="exit-btn ${isActive ? 'active-exit' : ''}" onclick="event.stopPropagation(); exitRoom('${room.id}')" title="退出"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></button>`;
-    else actionsHtml = canJoinMore ? '<span class="join-badge bg-amber-100 text-amber-700">加入</span>' : '<span class="join-badge bg-slate-200 text-slate-500">已满</span>';
+function startTimers() {
+  setInterval(() => { onlineTime++; updateStats(); if(onlineTime%5===0) db.from('users').update({ online_time: onlineTime }).eq('id', currentUser.id); }, 60000);
+  setInterval(() => { if(currentUser) db.from('users').update({ last_seen: new Date().toISOString() }).eq('id', currentUser.id); }, 30000);
+}
 
-    let newsHtml = '';
-    const hasNews = newsData[room.id];
-    if (hasNews) {
-      newsHtml = `<div class="news-preview-list ${expandedNews[room.id] ? 'expanded' : ''} mt-3 space-y-2">
-        ${hasNews.slice(0,3).map(n => `<div class="news-card"><div class="flex items-start gap-2">${n.hot ? '<span class="text-xs px-1 py-0.5 bg-red-100 text-red-600 rounded font-medium">热</span>' : ''}<div class="flex-1"><div class="text-sm font-medium text-slate-800 truncate">${n.title}</div><div class="text-xs text-slate-500">${n.time}</div></div></div></div>`).join('')}
-        <button onclick="event.stopPropagation(); openNewsModal('${room.id}')" class="w-full text-center text-sm text-indigo-600 font-medium py-2 hover:text-indigo-700">查看更多 →</button>
-      </div>`;
-    }
+function generateProfile(roomId) {
+  const d = memberData[roomId] || memberData.world;
+  displayName = d.names[Math.floor(Math.random()*d.names.length)];
+  displayAvatar = d.avatars[Math.floor(Math.random()*d.avatars.length)];
+  displayAvatarClass = d.classes[Math.floor(Math.random()*d.classes.length)];
+}
 
-    return `<div class="mb-2">
-      <div class="room-item ${isJoined ? 'joined' : ''} ${isActive ? 'active' : ''}" onclick="handleRoomClick('${room.id}', ${isJoined})">
-        <div class="room-icon ${isActive && isJoined ? 'bg-white/30' : colorMap[room.color]}"><span class="text-xl">${room.emoji}</span></div>
-        <div class="room-info"><div class="font-medium text-sm room-name truncate flex items-center gap-2">${room.name} <span class="text-xs opacity-70">${achievement.icon}</span></div><div class="text-xs room-online">${stats.users}人在线</div></div>
-        <div class="room-actions">${hasNews ? `<span class="news-badge" onclick="event.stopPropagation(); toggleNewsPreview('${room.id}')">资讯</span>` : ''}${actionsHtml}</div>
-        ${idx < 3 ? `<span class="rank-crown">${idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>` : ''}
-      </div>
-      ${newsHtml}
+function updateStats() {
+  let ach = achievements[0];
+  for(let i=achievements.length-1; i>=0; i--) if(onlineTime >= achievements[i].mins) { ach = achievements[i]; break; }
+  const next = achievements.find(a => a.mins > onlineTime);
+  let pct = 100, nxtTxt = '已满级';
+  if(next) { pct = Math.floor((onlineTime - ach.mins) / (next.mins - ach.mins) * 100); nxtTxt = next.mins + '分钟'; }
+  document.getElementById('statTotalTime').textContent = onlineTime;
+  document.getElementById('achIcon').textContent = ach.icon;
+  document.getElementById('nextLevel').textContent = nxtTxt;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('achievementBadge').className = 'achievement-badge achievement-' + (achievements.indexOf(ach)+1);
+}
+
+function renderRooms() {
+  document.getElementById('roomList').innerHTML = rooms.map(r => {
+    const j = joinedRooms.includes(r.id);
+    const a = currentRoom === r.id;
+    return `<div class="room-item ${j?'joined':''} ${a?'active':''}" onclick="handleRoomClick('${r.id}',${j})">
+      <div class="room-icon ${a&&j?'bg-white/20':'bg-slate-100'}">${r.emoji}</div>
+      <div class="flex-1 min-w-0"><div class="text-sm font-medium truncate">${r.name}</div><div class="text-xs opacity-70 truncate">${r.desc}</div></div>
+      ${!j && joinedRooms.length<4 ? '<span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">加入</span>' : ''}
     </div>`;
   }).join('');
+  document.getElementById('joinedCount').textContent = joinedRooms.length;
 }
 
-function toggleNewsPreview(roomId) { expandedNews[roomId] = !expandedNews[roomId]; renderAllRooms(); }
+function handleRoomClick(id, joined) { if(joined) switchRoom(id); else joinRoom(id); }
 
-function openNewsModal(roomId) {
-  const room = roomTypes.find(r => r.id === roomId);
-  const news = newsData[roomId];
-  if (!room || !news) return;
-  const modal = document.getElementById('newsModal');
-  document.getElementById('newsModalIcon').innerHTML = `<span class="text-xl">${room.emoji}</span>`;
-  document.getElementById('newsModalTitle').textContent = `${room.name} · 每日资讯`;
-  document.getElementById('newsModalSubtitle').textContent = `${news.length}条热点`;
-  document.getElementById('newsModalContent').innerHTML = news.map(item => `<div class="p-4 rounded-xl bg-slate-50 border"><div class="flex items-center gap-2 mb-2">${item.hot ? '<span class="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded font-semibold">热门</span>' : ''}<span class="text-xs text-slate-400">${item.time}</span></div><h4 class="font-semibold mb-1">${item.title}</h4><p class="text-sm text-slate-600">${item.summary}</p></div>`).join('');
-  modal.classList.remove('hidden'); modal.classList.add('flex');
-}
-
-function closeNewsModal() { document.getElementById('newsModal').classList.add('hidden'); document.getElementById('newsModal').classList.remove('flex'); }
-
-function handleRoomClick(roomId, isJoined) { if (isJoined) switchRoom(roomId); else joinRoom(roomId); }
-
-async function exitRoom(roomId) {
-  if (roomId === 'world') { showToast('世界聊天室无法退出'); return; }
-  const index = joinedRooms.indexOf(roomId);
-  if (index > -1) {
-    joinedRooms.splice(index, 1);
-    await db.from('users').update({ joined_rooms: joinedRooms }).eq('id', currentUser.id);
-    currentUser.joined_rooms = joinedRooms;
-    localStorage.setItem('fishUser', JSON.stringify(currentUser));
-    if (currentRoom === roomId) switchRoom('world');
-    else { renderAllRooms(); renderRoomTags(); updateJoinedCount(); }
-    showToast('已退出聊天室');
-  }
-}
-
-async function joinRoom(roomId) {
-  if (roomId === 'world') { showToast('世界聊天室已自动加入'); return; }
-  if (joinedRooms.filter(r => r !== 'world').length >= 3) { showToast('最多只能加入3个额外聊天室'); return; }
-  if (!joinedRooms.includes(roomId)) {
-    joinedRooms.push(roomId);
-    await db.from('users').update({ joined_rooms: joinedRooms }).eq('id', currentUser.id);
-    currentUser.joined_rooms = joinedRooms;
-    localStorage.setItem('fishUser', JSON.stringify(currentUser));
-    renderAllRooms(); renderRoomTags(); updateJoinedCount();
-    switchRoom(roomId);
-    showToast('成功加入聊天室！');
-  }
-}
-
-function renderRoomTags() {
-  document.getElementById('roomTags').innerHTML = joinedRooms.map(roomId => {
-    const room = roomTypes.find(r => r.id === roomId);
-    return room ? `<div class="room-tag ${currentRoom === roomId ? 'active' : ''}" onclick="switchRoom('${roomId}')"><span>${room.emoji}</span>${room.name}</div>` : '';
-  }).join('');
+async function joinRoom(id) {
+  if(joinedRooms.length>=4) return toast('最多加入4个');
+  joinedRooms.push(id);
+  await db.from('users').update({ joined_rooms: joinedRooms }).eq('id', currentUser.id);
+  currentUser.joined_rooms = joinedRooms;
+  localStorage.setItem('fish_user', JSON.stringify(currentUser));
+  renderRooms(); switchRoom(id); toast('已加入');
 }
 
 async function switchRoom(id) {
   currentRoom = id;
-  
-  // 切换聊天室时生成新的随机身份
-  generateRandomProfile(id);
-  
-  const room = roomTypes.find(r => r.id === id);
-  if (room) {
-    document.getElementById('currentRoomName').textContent = room.name;
-    document.getElementById('currentRoomDesc').textContent = room.desc;
-    document.getElementById('currentRoomIcon').innerHTML = `<span class="text-xl">${room.emoji}</span>`;
-    const colorMap = { emerald: 'bg-emerald-100', pink: 'bg-pink-100', blue: 'bg-blue-100', purple: 'bg-purple-100', orange: 'bg-orange-100', cyan: 'bg-cyan-100', red: 'bg-red-100' };
-    document.getElementById('currentRoomIcon').className = `room-icon ${colorMap[room.color]}`;
-  }
-  
-  renderAllRooms(); renderRoomTags(); updateRoomStats();
-  await loadMessages(); subscribeMessages(); loadOnlineUsers();
+  const r = rooms.find(x=>x.id===id);
+  document.getElementById('roomTitle').textContent = r.name;
+  document.getElementById('roomDesc').textContent = r.desc;
+  document.getElementById('currentRoomIcon').innerHTML = `<span class="text-base">${r.emoji}</span>`;
+  generateProfile(id);
+  renderRooms();
+  await loadMsgs();
+  subMsgs();
+  loadMembers();
 }
 
-async function loadMessages() {
-  const { data: messages } = await db.from('messages').select('*').eq('room_id', currentRoom).order('created_at', { ascending: true }).limit(100);
-  const container = document.getElementById('messageList');
-  container.innerHTML = '';
-  if (messages && messages.length > 0) messages.forEach(msg => appendMessage(msg, false));
-  else container.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-400"><p>暂无消息</p></div>';
-  container.scrollTop = container.scrollHeight;
+async function loadMsgs() {
+  const { data } = await db.from('messages').select('*').eq('room_id', currentRoom).order('created_at', { ascending: true }).limit(50);
+  const el = document.getElementById('messageList');
+  el.innerHTML = '';
+  if(data && data.length) data.forEach(m => addMsg(m, false));
+  else el.innerHTML = '<p class="text-center text-slate-400 py-8 text-sm">暂无消息</p>';
+  el.scrollTop = el.scrollHeight;
 }
 
-function subscribeMessages() {
-  if (msgChannel) db.removeChannel(msgChannel);
-  msgChannel = db.channel('m_' + currentRoom)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${currentRoom}` }, payload => appendMessage(payload.new, true))
-    .subscribe();
+function subMsgs() {
+  if(msgChannel) db.removeChannel(msgChannel);
+  msgChannel = db.channel('m_'+currentRoom).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${currentRoom}` }, p => addMsg(p.new, true)).subscribe();
 }
 
-function appendMessage(msg, scroll = true) {
-  const container = document.getElementById('messageList');
-  const isSelf = msg.username === currentUser?.id; // 用ID判断是否是自己
-  const time = new Date(msg.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  
-  // 根据消息中的avatar_class获取头像样式，如果没有则随机生成
-  let avatarClass = msg.avatar_class;
-  if (!avatarClass) {
-    const data = memberNamesData[currentRoom] || memberNamesData.world;
-    avatarClass = data.avatarClasses[Math.floor(Math.random() * data.avatarClasses.length)];
-  }
-  
-  if (container.querySelector('p')) container.innerHTML = '';
-  
-  const msgHtml = `<div class="message flex items-start gap-3 ${isSelf ? 'flex-row-reverse' : ''}">
-    <div class="w-10 h-10 rounded-full ${isSelf ? currentDisplayAvatarClass : avatarClass} flex items-center justify-center text-lg flex-shrink-0">${isSelf ? currentDisplayAvatar : msg.avatar || '👤'}</div>
-    <div class="${isSelf ? 'text-right' : ''}"><div class="flex items-center gap-2 mb-1 ${isSelf ? 'justify-end' : ''}"><span class="font-medium text-slate-800">${isSelf ? currentDisplayName : msg.display_name || msg.username}</span><span class="text-xs text-slate-400">${time}</span></div><div class="${isSelf ? 'message-self' : 'message-other'} px-4 py-2 max-w-xs inline-block">${escapeHtml(msg.content)}</div></div>
-  </div>`;
-  
-  container.insertAdjacentHTML('beforeend', msgHtml);
-  if (scroll) container.scrollTop = container.scrollHeight;
+function addMsg(m, scroll) {
+  const el = document.getElementById('messageList');
+  if(el.querySelector('p')) el.innerHTML = '';
+  const self = m.username === currentUser?.id;
+  const t = new Date(m.created_at).toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
+  const cls = m.avatar_class || 'avatar-world-1';
+  el.insertAdjacentHTML('beforeend', `<div class="message flex gap-2 ${self?'flex-row-reverse':''}">
+    <div class="w-8 h-8 rounded-full ${self?displayAvatarClass:cls} flex items-center justify-center text-sm">${self?displayAvatar:(m.avatar||'👤')}</div>
+    <div class="${self?'text-right':''} max-w-[75%]">
+      <div class="flex items-center gap-1 text-xs text-slate-400 mb-0.5 ${self?'justify-end':''}">${self?displayName:(m.display_name||m.username)} ${t}</div>
+      <div class="${self?'message-self':'message-other'} px-3 py-1.5 text-sm inline-block">${m.content.replace(/</g,'&lt;')}</div>
+    </div>
+  </div>`);
+  if(scroll) el.scrollTop = el.scrollHeight;
 }
 
-// 发送消息时使用随机生成的身份
-async function sendMessage() {
-  const input = document.getElementById('messageInput');
-  const content = input.value.trim();
-  if (!content) return;
-  if (sensitiveWords.some(word => content.toLowerCase().includes(word))) { showToast('请文明发言'); return; }
-  
-  totalWords += content.length;
-  input.value = '';
-  
-  // 使用当前随机身份发送消息
-  await db.from('messages').insert({ 
-    room_id: currentRoom, 
-    user_id: currentUser.id, 
-    username: currentUser.id, // 用ID关联
-    display_name: currentDisplayName, // 显示名
-    avatar: currentDisplayAvatar, // 头像
-    avatar_class: currentDisplayAvatarClass, // 头像样式
-    content 
-  });
+async function send() {
+  const txt = document.getElementById('msgInput').value.trim();
+  if(!txt) return;
+  document.getElementById('msgInput').value = '';
+  totalWords += txt.length;
+  await db.from('messages').insert({ room_id: currentRoom, user_id: currentUser.id, username: currentUser.id, display_name: displayName, avatar: displayAvatar, avatar_class: displayAvatarClass, content: txt });
 }
 
-function escapeHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// 加载在线用户
-async function loadOnlineUsers() {
-  // 获取最近5分钟内活跃的用户
-  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const { data: onlineUsers } = await db.from('users').select('*').gte('last_seen', fiveMinAgo).eq('is_online', true).limit(20);
-  
-  const count = onlineUsers?.length || 0;
-  document.getElementById('onlineCount').textContent = `${count} 在线`;
-  document.getElementById('statFishers').textContent = count;
-  roomStatsData[currentRoom].users = count;
-  
-  // 渲染成员列表
-  renderOnlineMembers(onlineUsers || []);
-}
-
-function renderOnlineMembers(users) {
-  const container = document.getElementById('memberListContent');
-  document.getElementById('memberCount').textContent = `${users.length}人`;
-  
-  if (users.length === 0) {
-    container.innerHTML = '<p class="text-center text-slate-400 py-4 text-sm">暂无在线用户</p>';
-    return;
-  }
-  
-  container.innerHTML = users.map((user, i) => {
-    // 为每个用户随机生成一个身份
-    const data = memberNamesData[currentRoom] || memberNamesData.world;
-    const name = data.names[i % data.names.length];
-    const avatar = data.avatars[i % data.avatars.length];
-    const avatarClass = data.avatarClasses[i % data.avatarClasses.length];
-    
-    const isSelf = user.id === currentUser?.id;
-    
-    return `<div class="member-item flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50" style="animation-delay: ${i * 50}ms">
-      <div class="member-avatar ${avatarClass}">${isSelf ? currentDisplayAvatar : avatar}</div>
-      <div class="flex-1"><div class="font-medium text-slate-700 text-sm">${isSelf ? currentDisplayName : name}</div><div class="text-xs text-emerald-500">在线</div></div>
-      <div class="online-dot"></div>
-    </div>`;
+async function loadMembers() {
+  const ago = new Date(Date.now() - 300000).toISOString();
+  const { data } = await db.from('users').select('*').gte('last_seen', ago).eq('is_online', true).limit(15);
+  document.getElementById('onlineCount').textContent = (data?.length||0) + ' 在线';
+  document.getElementById('memberCount').textContent = data?.length || 0;
+  const d = memberData[currentRoom] || memberData.world;
+  document.getElementById('memberList').innerHTML = (data||[]).map((u,i) => {
+    const isSelf = u.id === currentUser?.id;
+    const n = isSelf?displayName:d.names[i%d.names.length];
+    const a = isSelf?displayAvatar:d.avatars[i%d.avatars.length];
+    const c = isSelf?displayAvatarClass:d.classes[i%d.classes.length];
+    return `<div class="flex items-center gap-2 p-1.5 rounded hover:bg-slate-50"><div class="member-avatar ${c}">${a}</div><div class="flex-1 min-w-0"><div class="text-xs font-medium truncate">${n}</div><div class="text-xs text-emerald-500">在线</div></div><div class="online-dot"></div></div>`;
   }).join('');
 }
 
-function updateJoinedCount() { document.getElementById('joinedCount').textContent = joinedRooms.filter(r => r !== 'world').length; }
-function handleKeyDown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
-function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
-function toggleMemberList() { document.getElementById('memberList').classList.toggle('hidden'); }
-function showToast(msg) { document.getElementById('toastMessage').textContent = msg; document.getElementById('warningToast').classList.remove('hidden'); setTimeout(() => document.getElementById('warningToast').classList.add('hidden'), 3000); }
+// ============================================================
+// UI控制
+// ============================================================
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
+function openRightPanel() { document.getElementById('rightPanel').classList.add('open'); }
+function closeRightPanel() { document.getElementById('rightPanel').classList.remove('open'); }
 
-// 个人中心
-function openProfile() {
-  const modal = document.getElementById('profileModal'); modal.classList.remove('hidden'); modal.classList.add('flex');
+function toggleEmoji() { document.getElementById('emojiBox').classList.toggle('hidden'); if(!document.getElementById('emojiBox').classList.contains('hidden')) document.getElementById('emojiBox').innerHTML = emojis.map(e=>`<div class="emoji-item" onclick="ins('${e}')">${e}</div>`).join(''); }
+function ins(e) { const i=document.getElementById('msgInput'); i.value+=e; i.focus(); }
+
+function openProfile() { 
+  document.getElementById('profileModal').classList.remove('hidden'); document.getElementById('profileModal').classList.add('flex');
   document.getElementById('profileAvatar').textContent = currentUser.username[0].toUpperCase();
   document.getElementById('profileName').textContent = currentUser.username;
-  document.getElementById('statWords').textContent = totalWords;
-  document.getElementById('statTime').textContent = onlineTime;
-  document.getElementById('statDays').textContent = getConsecutiveDays();
-  renderCheckinCalendar();
-  const today = new Date().toDateString();
-  const btn = document.getElementById('checkinBtn');
-  if (checkinDays.includes(today)) { btn.textContent = '已签到'; btn.disabled = true; btn.classList.add('opacity-50'); }
+  document.getElementById('pWords').textContent = totalWords;
+  document.getElementById('pTime').textContent = onlineTime;
+  let c=0; const t=new Date(); for(let i=0;i<30;i++){ const d=new Date(t); d.setDate(t.getDate()-i); if(checkinDays.includes(d.toDateString()))c++;else break; }
+  document.getElementById('pDays').textContent = c;
+  renderCal();
+  if(checkinDays.includes(t.toDateString())){ document.getElementById('checkinBtn').textContent='已签'; document.getElementById('checkinBtn').disabled=true; document.getElementById('checkinBtn').classList.add('opacity-50'); }
 }
-function closeProfile() { document.getElementById('profileModal').classList.add('hidden'); document.getElementById('profileModal').classList.remove('flex'); }
-function getConsecutiveDays() { let c = 0; const t = new Date(); for (let i = 0; i < 30; i++) { const d = new Date(t); d.setDate(t.getDate() - i); if (checkinDays.includes(d.toDateString())) c++; else break; } return c; }
-async function doCheckin() {
-  const today = new Date().toDateString();
-  if (!checkinDays.includes(today)) {
-    checkinDays.push(today);
-    await db.from('users').update({ checkin_days: checkinDays }).eq('id', currentUser.id);
-    document.getElementById('checkinBtn').textContent = '已签到'; document.getElementById('checkinBtn').disabled = true; document.getElementById('checkinBtn').classList.add('opacity-50');
-    document.getElementById('statDays').textContent = getConsecutiveDays();
-    renderCheckinCalendar();
-    showToast('签到成功！');
-  }
+function closeProfile() { document.getElementById('profileModal').classList.add('hidden'); }
+function checkin() {
+  const t = new Date().toDateString();
+  if(checkinDays.includes(t)) return;
+  checkinDays.push(t);
+  db.from('users').update({ checkin_days: checkinDays }).eq('id', currentUser.id);
+  document.getElementById('checkinBtn').textContent='已签'; document.getElementById('checkinBtn').disabled=true; document.getElementById('checkinBtn').classList.add('opacity-50');
+  let c=0; const td=new Date(); for(let i=0;i<30;i++){ const d=new Date(td); d.setDate(td.getDate()-i); if(checkinDays.includes(d.toDateString()))c++;else break; }
+  document.getElementById('pDays').textContent = c;
+  renderCal();
+  toast('签到成功');
 }
-function renderCheckinCalendar() {
-  const container = document.getElementById('checkinCalendar');
-  const today = new Date();
-  const days = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  container.innerHTML = Array.from({ length: days }, (_, i) => {
-    const d = new Date(today.getFullYear(), today.getMonth(), i + 1);
-    const checked = checkinDays.includes(d.toDateString());
-    return `<div class="checkin-day ${checked ? 'checked' : ''} ${i + 1 === today.getDate() ? 'today' : ''}">${i + 1}</div>`;
+function renderCal() {
+  const t=new Date(), days=new Date(t.getFullYear(), t.getMonth()+1,0).getDate();
+  document.getElementById('calendar').innerHTML = Array.from({length:days},(_,i)=>{
+    const d=new Date(t.getFullYear(), t.getMonth(), i+1);
+    const ck=checkinDays.includes(d.toDateString());
+    return `<div class="w-7 h-7 text-xs rounded flex items-center justify-center ${ck?'bg-emerald-500 text-white':(i+1===t.getDate()?'border border-pink-400':'')}">${i+1}</div>`;
   }).join('');
 }
 
-// 启动
+// 反馈
+function openFeedback() { document.getElementById('feedbackModal').classList.remove('hidden'); document.getElementById('feedbackModal').classList.add('flex'); }
+function closeFeedback() { document.getElementById('feedbackModal').classList.add('hidden'); }
+async function submitFeedback() {
+  const type = document.getElementById('feedbackType').value;
+  const content = document.getElementById('feedbackContent').value.trim();
+  if(!content) return toast('请输入内容');
+  const { error } = await db.from('feedback').insert({ user_id: currentUser?.id, username: currentUser?.username, type, content });
+  if(error) toast('提交失败');
+  else { toast('感谢反馈'); closeFeedback(); document.getElementById('feedbackContent').value = ''; }
+}
+
+// 五子棋
+function openGame() { document.getElementById('gameModal').classList.remove('hidden'); document.getElementById('gameModal').classList.add('flex'); resetGame(); }
+function closeGame() { document.getElementById('gameModal').classList.add('hidden'); }
+function resetGame() {
+  gameBoard = Array(15).fill(null).map(() => Array(15).fill(0));
+  currentPlayer = 1; gameOver = false;
+  document.getElementById('gameStatus').textContent = '黑棋回合';
+  document.getElementById('gameStatus').className = 'text-xs bg-slate-800 text-white px-2 py-1 rounded';
+  renderBoard();
+}
+function renderBoard() {
+  const el = document.getElementById('gameBoard');
+  el.innerHTML = gameBoard.map((row, y) => row.map((cell, x) => 
+    `<div class="game-cell" onclick="clickCell(${y},${x})">
+      ${cell ? `<div class="game-piece ${cell===1?'black':'white'}"></div>` : ''}
+    </div>`
+  ).join('')).join('');
+}
+function clickCell(y, x) {
+  if(gameOver || gameBoard[y][x]) return;
+  gameBoard[y][x] = currentPlayer;
+  renderBoard();
+  if(checkWin(y, x)) {
+    gameOver = true;
+    document.getElementById('gameStatus').textContent = (currentPlayer===1?'黑棋':'白棋') + '获胜!';
+    document.getElementById('gameStatus').className = 'text-xs bg-emerald-500 text-white px-2 py-1 rounded';
+    return;
+  }
+  currentPlayer = currentPlayer === 1 ? 2 : 1;
+  document.getElementById('gameStatus').textContent = currentPlayer===1?'黑棋回合':'白棋回合';
+  document.getElementById('gameStatus').className = 'text-xs ' + (currentPlayer===1?'bg-slate-800 text-white':'bg-white text-slate-800 border') + ' px-2 py-1 rounded';
+}
+function checkWin(y, x) {
+  const p = gameBoard[y][x];
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  for(let [dy,dx] of dirs) {
+    let c = 1;
+    for(let i=1;i<5;i++) { if(gameBoard[y+dy*i]?.[x+dx*i]===p) c++; else break; }
+    for(let i=1;i<5;i++) { if(gameBoard[y-dy*i]?.[x-dx*i]===p) c++; else break; }
+    if(c>=5) return true;
+  }
+  return false;
+}
+
+function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2000); }
+
 init();
 </script>
 </body>
