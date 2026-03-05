@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FISH - 世界聊天室</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-start: #f0fdfa;
+      --bg-end: #fef3c7;
+      --fg: #1e293b;
+      --muted: #64748b;
+      --accent: #10b981;
+      --accent-light: #d1fae5;
+      --secondary: #f472b6;
+      --secondary-light: #fce7f3;
+      --card: #ffffff;
+      --border: #e2e8f0;
+    }
+
+    * { font-family: 'Noto Sans SC', 'Quicksand', sans-serif; }
+    body { background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); min-height: 100vh; color: var(--fg); }
+    .font-display { font-family: 'Quicksand', sans-serif; }
+    .bg-decoration { position: fixed; pointer-events: none; z-index: 0; }
+    .bubble { position: absolute; border-radius: 50%; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(244, 114, 182, 0.1)); animation: float 20s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #059669); color: white; border-radius: 12px; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: var(--accent-light); color: var(--accent); border-radius: 12px; font-weight: 600; transition: all 0.2s ease; }
+    .btn-secondary:hover { background: #a7f3d0; }
+    .input-field { background: #f8fafc; border: 2px solid var(--border); border-radius: 12px; transition: all 0.2s ease; }
+    .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-light); }
+    .room-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; }
+    .room-tag.active { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); }
+    .room-tag:not(.active) { background: var(--accent-light); color: var(--accent); }
+    .message { animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .message-self { background: linear-gradient(135deg, var(--accent), #059669); color: white; border-radius: 18px 18px 4px 18px; }
+    .message-other { background: #f1f5f9; color: var(--fg); border-radius: 18px 18px 18px 4px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .modal-overlay { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
+    .modal-content { animation: modalIn 0.3s ease; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .checkin-day { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; transition: all 0.2s ease; }
+    .checkin-day.checked { background: linear-gradient(135deg, var(--accent), #059669); color: white; }
+    .checkin-day.today { border: 2px solid var(--secondary); }
+    .checkin-day.future { color: #cbd5e1; }
+    .online-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.2); } }
+    .room-type-card { border: 2px solid var(--border); border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.2s ease; }
+    .room-type-card:hover { border-color: var(--accent); background: var(--accent-light); }
+    .room-type-card.selected { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
+    .stat-number { font-family: 'Quicksand', sans-serif; font-weight: 700; }
+    .room-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 14px; cursor: pointer; transition: all 0.2s ease; position: relative; }
+    .room-item.joined { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 1.5px solid #a7f3d0; }
+    .room-item.joined:hover { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+    .room-item.joined.active { background: linear-gradient(135deg, #10b981, #059669); border-color: transparent; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    .room-item.joined.active .room-name, .room-item.joined.active .room-online { color: white; }
+    .room-item:not(.joined) { background: #f8fafc; border: 1.5px dashed #e2e8f0; }
+    .room-item:not(.joined):hover { background: #fef3c7; border-color: #fcd34d; }
+    .room-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .room-info { flex: 1; min-width: 0; }
+    .room-actions { display: flex; align-items: center; gap: 4px; }
+    .exit-btn { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.1); color: #ef4444; transition: all 0.2s ease; cursor: pointer; flex-shrink: 0; }
+    .exit-btn:hover { background: rgba(239, 68, 68, 0.2); transform: scale(1.1); }
+    .exit-btn.active-exit { background: rgba(255, 255, 255, 0.2); color: white; }
+    .join-badge { font-size: 10px; padding: 3px 8px; border-radius: 8px; font-weight: 600; flex-shrink: 0; }
+    .world-badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; flex-shrink: 0; }
+    .achievement-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .achievement-1 { background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0369a1; }
+    .achievement-2 { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #15803d; }
+    .achievement-3 { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #b45309; }
+    .achievement-4 { background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #be185d; }
+    .achievement-5 { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #4338ca; }
+    .news-badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #818cf8, #6366f1); color: white; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease; }
+    .news-badge:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4); }
+    .news-card { padding: 12px 14px; border-radius: 10px; background: linear-gradient(135deg, #fafafa, #f5f5f5); border: 1px solid #e5e5e5; transition: all 0.2s ease; cursor: pointer; }
+    .news-card:hover { background: linear-gradient(135deg, #f5f5f5, #eeeeee); transform: translateX(4px); }
+    .news-preview-list { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .news-preview-list.expanded { max-height: 300px; }
+    .emoji-picker { position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: white; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); width: 320px; max-width: calc(100vw - 32px); z-index: 100; animation: emojiPickerIn 0.2s ease; transform-origin: bottom left; }
+    @keyframes emojiPickerIn { from { opacity: 0; transform: scale(0.9) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .emoji-category-tab { padding: 8px 12px; font-size: 12px; font-weight: 600; color: var(--muted); border-radius: 8px; transition: all 0.2s ease; cursor: pointer; white-space: nowrap; }
+    .emoji-category-tab:hover { background: #f1f5f9; }
+    .emoji-category-tab.active { background: var(--accent-light); color: var(--accent); }
+    .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+    .emoji-item { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 8px; cursor: pointer; transition: all 0.15s ease; user-select: none; }
+    .emoji-item:hover { background: #f1f5f9; transform: scale(1.15); }
+    .emoji-btn { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s ease; cursor: pointer; }
+    .emoji-btn:hover { background: #fef3c7; }
+    .member-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .avatar-world-1 { background: linear-gradient(135deg, #f472b6, #ec4899); }
+    .avatar-world-2 { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+    .avatar-world-3 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+    .avatar-world-4 { background: linear-gradient(135deg, #34d399, #10b981); }
+    .avatar-world-5 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .avatar-world-6 { background: linear-gradient(135deg, #f87171, #ef4444); }
+    .avatar-pet-1 { background: linear-gradient(135deg, #fda4af, #fb7185); }
+    .avatar-pet-2 { background: linear-gradient(135deg, #fdba74, #fb923c); }
+    .avatar-pet-3 { background: linear-gradient(135deg, #bef264, #a3e635); }
+    .avatar-game-1 { background: linear-gradient(135deg, #e879f9, #d946ef); }
+    .avatar-game-2 { background: linear-gradient(135deg, #f472b6, #ec4899); }
+    .avatar-game-3 { background: linear-gradient(135deg, #c084fc, #a855f7); }
+    .avatar-travel-1 { background: linear-gradient(135deg, #67e8f9, #22d3ee); }
+    .avatar-travel-2 { background: linear-gradient(135deg, #86efac, #4ade80); }
+    .avatar-car-1 { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .avatar-car-2 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+    .avatar-ai-1 { background: linear-gradient(135deg, #818cf8, #6366f1); }
+    .avatar-ai-2 { background: linear-gradient(135deg, #38bdf8, #0ea5e9); }
+    .avatar-food-1 { background: linear-gradient(135deg, #fdba74, #fb923c); }
+    .avatar-food-2 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .member-item { animation: memberFadeIn 0.3s ease forwards; opacity: 0; }
+    @keyframes memberFadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    .rank-crown { position: absolute; top: -6px; left: -6px; font-size: 16px; }
+    .loading-spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+    @media (max-width: 768px) { .sidebar { position: fixed; left: -100%; top: 0; height: 100vh; z-index: 50; transition: left 0.3s ease; } .sidebar.open { left: 0; } .emoji-picker { width: 280px; } .emoji-grid { grid-template-columns: repeat(7, 1fr); } .emoji-item { width: 32px; height: 32px; font-size: 18px; } }
+  </style>
+</head>
+<body class="overflow-hidden">
+  <!-- 背景装饰 -->
+  <div class="bg-decoration inset-0">
+    <div class="bubble" style="width: 300px; height: 300px; top: -100px; right: -100px;"></div>
+    <div class="bubble" style="width: 200px; height: 200px; bottom: 100px; left: -50px; animation-delay: -5s;"></div>
+    <div class="bubble" style="width: 150px; height: 150px; top: 50%; right: 20%; animation-delay: -10s;"></div>
+  </div>
+
+  <!-- 登录/注册模态框 -->
+  <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+    <div class="modal-content card p-8 w-full max-w-md mx-4 relative">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-2 mb-2">
+          <svg class="w-10 h-10 text-emerald-500" viewBox="0 0 40 40" fill="none">
+            <ellipse cx="16" cy="20" rx="12" ry="8" fill="currentColor"/>
+            <path d="M28 20 L38 14 L38 26 Z" fill="currentColor"/>
+            <circle cx="12" cy="18" r="2" fill="white"/>
+          </svg>
+          <span class="font-display text-3xl font-bold text-emerald-600">FISH</span>
+        </div>
+        <p class="text-slate-500">游进世界聊天室，畅聊无限可能</p>
+      </div>
+
+      <div id="loginForm">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2">用户名 <span class="text-slate-400 text-xs">(英文+数字)</span></label>
+            <input type="text" id="loginUsername" class="input-field w-full px-4 py-3" placeholder="例如: fish123">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2">密码 <span class="text-slate-400 text-xs">(英文+数字)</span></label>
+            <input type="password" id="loginPassword" class="input-field w-full px-4 py-3" placeholder="输入密码">
+          </div>
+        </div>
+        <button id="loginBtn" onclick="handleLogin()" class="btn-primary w-full py-3 mt-6 flex items-center justify-center gap-2">
+          <span>登录</span>
+        </button>
+        <p class="text-center text-slate-500 text-sm mt-4">
+          还没有账号？<button onclick="showRegister()" class="text-emerald-600 font-semibold hover:underline">立即注册</button>
+        </p>
+      </div>
+
+      <div id="registerForm" class="hidden">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2">用户名 <span class="text-slate-400 text-xs">(英文+数字组合，3-16位)</span></label>
+            <input type="text" id="regUsername" class="input-field w-full px-4 py-3" placeholder="例如: player2024">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2">密码 <span class="text-slate-400 text-xs">(英文+数字组合，4-20位)</span></label>
+            <input type="password" id="regPassword" class="input-field w-full px-4 py-3" placeholder="设置密码">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2">选择感兴趣的聊天室类型（可选，最多3个）</label>
+            <div class="grid grid-cols-2 gap-3" id="roomTypeSelector">
+              <div class="room-type-card" data-id="pet" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🐾</span><span class="font-medium">宠物</span></div>
+              <div class="room-type-card" data-id="travel" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🏔️</span><span class="font-medium">景点</span></div>
+              <div class="room-type-card" data-id="game" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🎮</span><span class="font-medium">游戏</span></div>
+              <div class="room-type-card" data-id="car" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🚗</span><span class="font-medium">汽车</span></div>
+              <div class="room-type-card" data-id="ai" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🤖</span><span class="font-medium">AI</span></div>
+              <div class="room-type-card" data-id="food" onclick="toggleRoomType(this)"><span class="text-xl mb-1 block">🍜</span><span class="font-medium">美食</span></div>
+            </div>
+          </div>
+        </div>
+        <button id="registerBtn" onclick="handleRegister()" class="btn-primary w-full py-3 mt-6 flex items-center justify-center gap-2">
+          <span>注册并开始聊天</span>
+        </button>
+        <p class="text-center text-slate-500 text-sm mt-4">
+          已有账号？<button onclick="showLogin()" class="text-emerald-600 font-semibold hover:underline">返回登录</button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主界面 -->
+  <div id="mainApp" class="hidden h-screen flex flex-col relative z-10">
+    <header class="card mx-4 mt-4 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-slate-100 rounded-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="flex items-center gap-2">
+          <svg class="w-8 h-8 text-emerald-500" viewBox="0 0 40 40" fill="none">
+            <ellipse cx="16" cy="20" rx="12" ry="8" fill="currentColor"/>
+            <path d="M28 20 L38 14 L38 26 Z" fill="currentColor"/>
+            <circle cx="12" cy="18" r="2" fill="white"/>
+          </svg>
+          <span class="font-display text-2xl font-bold text-emerald-600">FISH</span>
+        </div>
+      </div>
+      <div class="hidden md:flex items-center gap-2 overflow-x-auto" id="roomTags"></div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <div class="online-dot"></div>
+          <span id="onlineCount" class="text-sm font-medium text-slate-600">-- 在线</span>
+        </div>
+        <button onclick="openProfile()" class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-50 transition">
+          <div id="userAvatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold"></div>
+          <span id="userName" class="font-medium text-slate-700 hidden sm:block"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 flex gap-4 p-4 overflow-hidden">
+      <aside id="sidebar" class="sidebar card w-80 flex-shrink-0 flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-slate-100">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-slate-800">聊天室排行</h3>
+            <span class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">已加入 <span id="joinedCount">0</span>/3</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-2">按摸鱼成就等级排序</p>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3" id="allRoomsList"></div>
+      </aside>
+
+      <main class="card flex-1 flex flex-col overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div id="currentRoomIcon" class="room-icon bg-emerald-100"><span class="text-xl">🌐</span></div>
+            <div>
+              <h2 id="currentRoomName" class="font-semibold text-slate-800">世界聊天室</h2>
+              <p id="currentRoomDesc" class="text-xs text-slate-500">和全世界的人一起畅聊</p>
+            </div>
+          </div>
+          <button onclick="toggleMemberList()" class="p-2 hover:bg-slate-50 rounded-lg md:hidden">
+            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          </button>
+        </div>
+        <div id="messageList" class="flex-1 overflow-y-auto px-6 py-4 space-y-4"></div>
+        <div class="px-6 py-4 border-t border-slate-100">
+          <div class="flex items-end gap-2">
+            <div class="relative">
+              <button onclick="toggleEmojiPicker()" class="emoji-btn" title="发送表情">😊</button>
+              <div id="emojiPicker" class="emoji-picker hidden">
+                <div class="p-3 border-b border-slate-100">
+                  <div class="flex gap-1 overflow-x-auto pb-1" id="emojiCategoryTabs">
+                    <button class="emoji-category-tab active" data-category="smileys" onclick="switchEmojiCategory('smileys')">😀</button>
+                    <button class="emoji-category-tab" data-category="gestures" onclick="switchEmojiCategory('gestures')">👋</button>
+                    <button class="emoji-category-tab" data-category="animals" onclick="switchEmojiCategory('animals')">🐱</button>
+                    <button class="emoji-category-tab" data-category="food" onclick="switchEmojiCategory('food')">🍕</button>
+                    <button class="emoji-category-tab" data-category="activities" onclick="switchEmojiCategory('activities')">⚽</button>
+                    <button class="emoji-category-tab" data-category="hearts" onclick="switchEmojiCategory('hearts')">❤️</button>
+                  </div>
+                </div>
+                <div class="p-3 max-h-48 overflow-y-auto"><div class="emoji-grid" id="emojiGrid"></div></div>
+              </div>
+            </div>
+            <div class="flex-1 relative">
+              <textarea id="messageInput" class="input-field w-full px-4 py-3 resize-none" placeholder="说点什么..." rows="1" onkeydown="handleKeyDown(event)" oninput="autoResize(this)"></textarea>
+            </div>
+            <button id="sendBtn" onclick="sendMessage()" class="btn-primary px-5 py-3 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              <span class="hidden sm:inline">发送</span>
+            </button>
+          </div>
+          <p id="inputWarning" class="text-xs text-red-500 mt-2 hidden">请文明发言，禁止发布违规内容</p>
+        </div>
+      </main>
+
+      <aside id="memberList" class="card w-64 flex-shrink-0 overflow-hidden hidden md:flex flex-col">
+        <div class="p-4 border-b border-slate-100 bg-gradient-to-br from-emerald-50 to-teal-50">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">🐟</span>
+            <h3 class="font-semibold text-slate-800">摸鱼统计</h3>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-500">摸鱼人数</span><span id="statFishers" class="font-bold text-emerald-600">--</span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-500">累计时间</span><span id="statTotalTime" class="font-bold text-emerald-600">-- 分钟</span></div>
+            <div class="pt-2 border-t border-emerald-100">
+              <div class="flex justify-between items-center mb-1"><span class="text-xs text-slate-500">摸鱼成就</span></div>
+              <div id="achievementBadge" class="achievement-badge achievement-1"><span id="achievementIcon">🐠</span><span id="achievementName">小鱼</span></div>
+              <div class="mt-2">
+                <div class="flex justify-between text-xs text-slate-400 mb-1"><span>下一等级进度</span><span id="progressText">--</span></div>
+                <div class="h-2 bg-white rounded-full overflow-hidden"><div id="progressBar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 transition-all duration-500" style="width: 0%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="font-semibold text-slate-800">活跃成员</h3>
+          <span id="memberCount" class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">--人</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3 space-y-2" id="memberListContent"></div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 个人中心模态框 -->
+  <div id="profileModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+    <div class="modal-content card p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-slate-800">个人中心</h3>
+        <button onclick="closeProfile()" class="p-2 hover:bg-slate-100 rounded-lg"><svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div class="text-center mb-6">
+        <div id="profileAvatar" class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3"></div>
+        <h4 id="profileName" class="font-semibold text-lg text-slate-800"></h4>
+        <p class="text-sm text-slate-500">摸鱼达人</p>
+      </div>
+      <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 mb-6">
+        <h5 class="font-semibold text-slate-800 mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>个人摸鱼统计</h5>
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div><div class="stat-number text-2xl text-emerald-600" id="statWords">0</div><div class="text-xs text-slate-500 mt-1">发送字数</div></div>
+          <div><div class="stat-number text-2xl text-pink-500" id="statTime">0</div><div class="text-xs text-slate-500 mt-1">摸鱼(分钟)</div></div>
+          <div><div class="stat-number text-2xl text-amber-500" id="statDays">0</div><div class="text-xs text-slate-500 mt-1">连续签到</div></div>
+        </div>
+      </div>
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h5 class="font-semibold text-slate-800 flex items-center gap-2"><svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>摸鱼打卡</h5>
+          <button onclick="doCheckin()" id="checkinBtn" class="btn-secondary px-4 py-2 text-sm">签到</button>
+        </div>
+        <div class="grid grid-cols-7 gap-2" id="checkinCalendar"></div>
+      </div>
+      <button onclick="handleLogout()" class="w-full py-3 text-red-500 font-medium hover:bg-red-50 rounded-xl transition">退出登录</button>
+    </div>
+  </div>
+
+  <!-- 提示框 -->
+  <div id="warningToast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden">
+    <div class="card px-6 py-4 border-l-4 border-red-500 flex items-center gap-3">
+      <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      <span class="text-slate-700" id="toastMessage">提示信息</span>
+    </div>
+  </div>
+
+  <script>
+    // ========================================
+    // 第一步：配置 Supabase
+    // 请替换成你自己的 Supabase 项目信息
+    // ========================================
+    const SUPABASE_URL = 'https://xgsmfikhstlxingnzcdf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnc21maWtoc3RseGluZ256Y2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2OTI4NzYsImV4cCI6MjA4ODI2ODg3Nn0.gghyf7F7Wqspd3GzkSQb1DCY_yW5Vq8lmiIWDnR9TPE';
+    
+    // 初始化 Supabase 客户端
+    let supabase;
+    try {
+      if (SUPABASE_URL.includes('你的项目') || SUPABASE_ANON_KEY.includes('你的')) {
+        console.warn('⚠️ 请先配置 Supabase URL 和 Key');
+      }
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) {
+      console.error('Supabase 初始化失败', e);
+    }
+
+    // ========================================
+    // 在 Supabase SQL Editor 中执行以下代码创建数据表：
+    // ========================================
+    /*
+    -- 用户表
+    CREATE TABLE users (
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      joined_rooms TEXT[] DEFAULT ARRAY['world']::TEXT[],
+      total_words INTEGER DEFAULT 0,
+      online_time INTEGER DEFAULT 0,
+      checkin_days TEXT[] DEFAULT ARRAY[]::TEXT[],
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+
+    -- 消息表
+    CREATE TABLE messages (
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      room_id TEXT NOT NULL,
+      user_id UUID REFERENCES users(id),
+      username TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+
+    -- 启用实时订阅
+    ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+    ALTER PUBLICATION supabase_realtime ADD TABLE users;
+
+    -- 创建索引
+    CREATE INDEX idx_messages_room ON messages(room_id, created_at DESC);
+    CREATE INDEX idx_users_username ON users(username);
+    */
+
+    // ========================================
+    // 数据定义
+    // ========================================
+    const emojiData = {
+      smileys: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐'],
+      gestures: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '💪'],
+      animals: ['🐱', '🐶', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊'],
+      food: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧂', '🥓', '🥚', '🍳', '🧇', '🥞', '🧈', '🍞', '🥐', '🥖', '🥨', '🧀', '🥗', '🥙', '🥪', '🌮', '🌯', '🫔', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍬', '🍭', '🍫'],
+      activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '🤺', '⛹️', '🤾', '🏌️', '🏇', '🧘', '🏄', '🏊', '🤽', '🚣', '🧗', '🚴', '🚵', '🎖️', '🏆', '🥇', '🥈', '🥉', '🏅', '🎪', '🤹', '🎭', '🎨'],
+      hearts: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '♥️', '❤️‍🔥', '❤️‍🩹', '✨', '🌟', '⭐', '💫', '🎈', '🎉', '🎊', '🎀', '🎁', '🎏', '🎐', '🎑', '🧧', '🌹', '🌸', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🍀', '🌿', '🍃']
+    };
+
+    let currentEmojiCategory = 'smileys';
+
+    const memberNamesData = {
+      world: { names: ['小明', 'James', 'Emma', '田中', 'Pierre', 'Hans', 'Giovanni', 'Carlos'], avatars: ['🌏', '🌎', '🌍', '🧑‍🦱', '👨', '👩', '🧔', '👱'], avatarClasses: ['avatar-world-1', 'avatar-world-2', 'avatar-world-3', 'avatar-world-4', 'avatar-world-5', 'avatar-world-6'] },
+      pet: { names: ['哈士奇', '柯基', '金毛', '布偶猫', '英短', '橘猫', '仓鼠', '兔子'], avatars: ['🐕', '🐶', '🐩', '🐈', '😺', '😸', 'hamster', '🐰'], avatarClasses: ['avatar-pet-1', 'avatar-pet-2', 'avatar-pet-3'] },
+      travel: { names: ['故宫', '长城', '富士山', '巴黎', '伦敦', '悉尼', '背包客'], avatars: ['🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🗺️'], avatarClasses: ['avatar-travel-1', 'avatar-travel-2'] },
+      game: { names: ['刺客', '法师', '奶妈', '坦克', '氪金大佬', '肝帝', '欧皇'], avatars: ['🎮', '🕹️', '👾', '🤖', '🧙', '🦸', '🥷'], avatarClasses: ['avatar-game-1', 'avatar-game-2', 'avatar-game-3'] },
+      car: { names: ['奔驰', '宝马', '特斯拉', '比亚迪', '老司机', '改装车'], avatars: ['🚗', '🚕', '🚙', '🏎️', '🚓', '🛻'], avatarClasses: ['avatar-car-1', 'avatar-car-2'] },
+      ai: { names: ['ChatGPT', 'Claude', 'Gemini', '算法工程师', 'Prompt大师'], avatars: ['🤖', '🧠', '💻', '🖥️', '🔮'], avatarClasses: ['avatar-ai-1', 'avatar-ai-2'] },
+      food: { names: ['火锅', '烧烤', '奶茶', '吃货', '美食家'], avatars: ['🍜', '🍝', '🍲', '🍛', '🍣'], avatarClasses: ['avatar-food-1', 'avatar-food-2'] }
+    };
+
+    const achievementLevels = [
+      { name: '小鱼', icon: '🐠', minMinutes: 0, class: 'achievement-1' },
+      { name: '大鱼', icon: '🐟', minMinutes: 500, class: 'achievement-2' },
+      { name: '海豚', icon: '🐬', minMinutes: 1000, class: 'achievement-3' },
+      { name: '鲨鱼', icon: '🦈', minMinutes: 1500, class: 'achievement-4' },
+      { name: '鲸鱼', icon: '🐋', minMinutes: 2000, class: 'achievement-5' }
+    ];
+
+    function getAchievement(minutes) {
+      let level = achievementLevels[0];
+      for (let i = achievementLevels.length - 1; i >= 0; i--) {
+        if (minutes >= achievementLevels[i].minMinutes) { level = achievementLevels[i]; break; }
+      }
+      const nextLevel = achievementLevels.find(l => l.minMinutes > minutes);
+      let progress = 100, progressText = '已满级';
+      if (nextLevel) {
+        const range = nextLevel.minMinutes - level.minMinutes;
+        const current = minutes - level.minMinutes;
+        progress = Math.floor((current / range) * 100);
+        progressText = `${minutes}/${nextLevel.minMinutes}`;
+      }
+      return { ...level, progress, progressText, levelIndex: achievementLevels.indexOf(level) + 1 };
+    }
+
+    const roomStatsData = { world: { users: 0, minutes: 2450 }, game: { users: 0, minutes: 1820 }, ai: { users: 0, minutes: 1350 }, pet: { users: 0, minutes: 980 }, food: { users: 0, minutes: 720 }, travel: { users: 0, minutes: 450 }, car: { users: 0, minutes: 280 } };
+
+    const roomTypes = [
+      { id: 'world', name: '世界聊天', emoji: '🌐', desc: '和全世界的人一起畅聊', color: 'emerald', isWorld: true },
+      { id: 'pet', name: '宠物乐园', emoji: '🐾', desc: '分享你的萌宠日常', color: 'pink' },
+      { id: 'travel', name: '景点探索', emoji: '🏔️', desc: '发现世界的美景', color: 'blue' },
+      { id: 'game', name: '游戏世界', emoji: '🎮', desc: '组队开黑聊游戏', color: 'purple' },
+      { id: 'car', name: '汽车之家', emoji: '🚗', desc: '车友交流天地', color: 'orange' },
+      { id: 'ai', name: 'AI前沿', emoji: '🤖', desc: '探讨人工智能未来', color: 'cyan' },
+      { id: 'food', name: '美食天地', emoji: '🍜', desc: '吃货的快乐老家', color: 'red' }
+    ];
+
+    const sensitiveWords = ['傻逼', '操', '妈的', 'fuck', 'shit', 'damn', '黄', '赌', '毒'];
+    
+    // 状态变量
+    let currentUser = null;
+    let currentRoom = 'world';
+    let joinedRooms = ['world'];
+    let selectedRoomTypes = [];
+    let totalWords = 0;
+    let onlineTime = 0;
+    let checkinDays = [];
+    let onlineTimer = null;
+    let messageSubscription = null;
+    let userSubscription = null;
+
+    // ========================================
+    // 初始化
+    // ========================================
+    async function init() {
+      const savedUser = localStorage.getItem('fishUser');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        // 从数据库验证用户是否仍然存在
+        const { data } = await supabase.from('users').select('*').eq('id', currentUser.id).single();
+        if (data) {
+          currentUser = data;
+          joinedRooms = currentUser.joined_rooms || ['world'];
+          totalWords = currentUser.total_words || 0;
+          onlineTime = currentUser.online_time || 0;
+          checkinDays = currentUser.checkin_days || [];
+          showMainApp();
+        } else {
+          localStorage.removeItem('fishUser');
+          document.getElementById('authModal').classList.remove('hidden');
+          document.getElementById('authModal').classList.add('flex');
+        }
+      } else {
+        document.getElementById('authModal').classList.remove('hidden');
+        document.getElementById('authModal').classList.add('flex');
+      }
+      renderEmojiGrid();
+    }
+
+    function startOnlineTimer() {
+      if (onlineTimer) clearInterval(onlineTimer);
+      onlineTimer = setInterval(async () => {
+        if (currentUser) {
+          onlineTime++;
+          // 每5分钟同步一次到数据库
+          if (onlineTime % 5 === 0) {
+            await supabase.from('users').update({ online_time: onlineTime }).eq('id', currentUser.id);
+          }
+          updateRoomStats();
+        }
+      }, 60000); // 每1分钟
+    }
+
+    function updateRoomStats() {
+      roomStatsData[currentRoom].minutes++;
+      const stats = roomStatsData[currentRoom];
+      const achievement = getAchievement(stats.minutes);
+      document.getElementById('statFishers').textContent = stats.users || '--';
+      document.getElementById('statTotalTime').textContent = `${stats.minutes} 分钟`;
+      document.getElementById('achievementIcon').textContent = achievement.icon;
+      document.getElementById('achievementName').textContent = achievement.name;
+      document.getElementById('progressText').textContent = achievement.progressText;
+      document.getElementById('progressBar').style.width = `${achievement.progress}%`;
+      document.getElementById('achievementBadge').className = `achievement-badge ${achievement.class}`;
+    }
+
+    // ========================================
+    // 表情选择器
+    // ========================================
+    function toggleEmojiPicker() { const picker = document.getElementById('emojiPicker'); picker.classList.toggle('hidden'); if (!picker.classList.contains('hidden')) renderEmojiGrid(); }
+    function switchEmojiCategory(category) { currentEmojiCategory = category; document.querySelectorAll('.emoji-category-tab').forEach(tab => { tab.classList.remove('active'); if (tab.dataset.category === category) tab.classList.add('active'); }); renderEmojiGrid(); }
+    function renderEmojiGrid() { const grid = document.getElementById('emojiGrid'); const emojis = emojiData[currentEmojiCategory] || emojiData.smileys; grid.innerHTML = emojis.map(emoji => `<div class="emoji-item" onclick="insertEmoji('${emoji}')">${emoji}</div>`).join(''); }
+    function insertEmoji(emoji) { const input = document.getElementById('messageInput'); const start = input.selectionStart; input.value = input.value.substring(0, start) + emoji + input.value.substring(input.selectionEnd); input.selectionStart = input.selectionEnd = start + emoji.length; input.focus(); autoResize(input); }
+    document.addEventListener('click', (e) => { const picker = document.getElementById('emojiPicker'); const emojiBtn = document.querySelector('.emoji-btn'); if (picker && !picker.contains(e.target) && !emojiBtn.contains(e.target)) picker.classList.add('hidden'); });
+
+    // ========================================
+    // 登录注册
+    // ========================================
+    function showLogin() { document.getElementById('loginForm').classList.remove('hidden'); document.getElementById('registerForm').classList.add('hidden'); }
+    function showRegister() { document.getElementById('loginForm').classList.add('hidden'); document.getElementById('registerForm').classList.remove('hidden'); }
+    function toggleRoomType(el) { const type = el.dataset.id; if (el.classList.contains('selected')) { el.classList.remove('selected'); selectedRoomTypes = selectedRoomTypes.filter(t => t !== type); } else { if (selectedRoomTypes.length < 3) { el.classList.add('selected'); selectedRoomTypes.push(type); } else showToast('最多只能选择3个聊天室类型'); } }
+
+    async function handleLogin() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const validation = validateCredentials(username, password);
+      if (!validation.valid) { showToast(validation.message); return; }
+
+      setButtonLoading('loginBtn', true);
+      const { data, error } = await supabase.from('users').select('*').eq('username', username).eq('password', password).single();
+      setButtonLoading('loginBtn', false);
+
+      if (data) {
+        currentUser = data;
+        localStorage.setItem('fishUser', JSON.stringify(currentUser));
+        joinedRooms = currentUser.joined_rooms || ['world'];
+        totalWords = currentUser.total_words || 0;
+        onlineTime = currentUser.online_time || 0;
+        checkinDays = currentUser.checkin_days || [];
+        showMainApp();
+      } else {
+        showToast('用户名或密码错误');
+      }
+    }
+
+    async function handleRegister() {
+      const username = document.getElementById('regUsername').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const validation = validateCredentials(username, password);
+      if (!validation.valid) { showToast(validation.message); return; }
+
+      setButtonLoading('registerBtn', true);
+      
+      // 检查用户名是否存在
+      const { data: existing } = await supabase.from('users').select('username').eq('username', username).single();
+      if (existing) { showToast('用户名已存在'); setButtonLoading('registerBtn', false); return; }
+
+      const rooms = ['world', ...selectedRoomTypes.slice(0, 3)];
+      const { data, error } = await supabase.from('users').insert({ username, password, joined_rooms: rooms }).select().single();
+      
+      setButtonLoading('registerBtn', false);
+
+      if (data) {
+        currentUser = data;
+        localStorage.setItem('fishUser', JSON.stringify(currentUser));
+        joinedRooms = rooms;
+        showMainApp();
+      } else {
+        showToast('注册失败: ' + (error?.message || '未知错误'));
+      }
+    }
+
+    function validateCredentials(username, password) {
+      const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+      if (!username || !password) return { valid: false, message: '请填写完整信息' };
+      if (!alphanumericRegex.test(username)) return { valid: false, message: '用户名只能包含英文和数字' };
+      if (username.length < 3) return { valid: false, message: '用户名至少3个字符' };
+      if (!alphanumericRegex.test(password)) return { valid: false, message: '密码只能包含英文和数字' };
+      if (password.length < 4) return { valid: false, message: '密码至少4个字符' };
+      return { valid: true };
+    }
+
+    function setButtonLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      if (loading) { btn.disabled = true; btn.innerHTML = '<div class="loading-spinner"></div>'; }
+      else { btn.disabled = false; btn.innerHTML = btnId === 'loginBtn' ? '<span>登录</span>' : '<span>注册并开始聊天</span>'; }
+    }
+
+    async function handleLogout() {
+      if (currentUser) await supabase.from('users').update({ online_time: onlineTime, total_words: totalWords, checkin_days: checkinDays }).eq('id', currentUser.id);
+      if (messageSubscription) { await messageSubscription.unsubscribe(); messageSubscription = null; }
+      if (userSubscription) { await userSubscription.unsubscribe(); userSubscription = null; }
+      currentUser = null; localStorage.removeItem('fishUser');
+      document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').classList.add('flex');
+      document.getElementById('mainApp').classList.add('hidden'); closeProfile();
+    }
+
+    // ========================================
+    // 主界面
+    // ========================================
+    function showMainApp() {
+      document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').classList.remove('flex');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('userName').textContent = currentUser.username;
+      document.getElementById('userAvatar').textContent = currentUser.username[0].toUpperCase();
+      renderAllRooms(); renderRoomTags(); updateJoinedCount(); updateRoomStats();
+      switchRoom(currentRoom); // 加载当前房间消息
+      startOnlineTimer();
+      subscribeToUsers(); // 订阅用户变化
+    }
+
+    async function subscribeToUsers() {
+      // 简单模拟：定时更新在线人数
+      setInterval(async () => {
+        const { count } = await supabase.from('users').select('*', { count: 'exact', head: true });
+        document.getElementById('onlineCount').textContent = `${count || 0} 在线`;
+        // 更新当前房间统计
+        const { data: recentUsers } = await supabase.from('users').select('id').order('created_at', { ascending: false }).limit(50);
+        roomStatsData[currentRoom].users = recentUsers?.length || 0;
+        document.getElementById('statFishers').textContent = roomStatsData[currentRoom].users;
+      }, 10000);
+    }
+
+    function renderAllRooms() {
+      const container = document.getElementById('allRoomsList');
+      const extraJoinedCount = joinedRooms.filter(r => r !== 'world').length;
+      const canJoinMore = extraJoinedCount < 3;
+      const sortedRoomTypes = [...roomTypes].sort((a, b) => getAchievement(roomStatsData[b.id]?.minutes || 0).levelIndex - getAchievement(roomStatsData[a.id]?.minutes || 0).levelIndex);
+      container.innerHTML = sortedRoomTypes.map((room, idx) => {
+        const isJoined = joinedRooms.includes(room.id);
+        const isActive = currentRoom === room.id;
+        const stats = roomStatsData[room.id] || { users: 0, minutes: 0 };
+        const achievement = getAchievement(stats.minutes);
+        const colorMap = { emerald: 'bg-emerald-100', pink: 'bg-pink-100', blue: 'bg-blue-100', purple: 'bg-purple-100', orange: 'bg-orange-100', cyan: 'bg-cyan-100', red: 'bg-red-100' };
+        return `<div class="mb-2">
+          <div class="room-item ${isJoined ? 'joined' : ''} ${isActive ? 'active' : ''}" onclick="handleRoomClick('${room.id}', ${isJoined})">
+            <div class="room-icon ${isActive && isJoined ? 'bg-white/30' : colorMap[room.color]}"><span class="text-xl">${room.emoji}</span></div>
+            <div class="room-info">
+              <div class="font-medium text-sm room-name truncate flex items-center gap-2">${room.name} <span class="text-xs">${achievement.icon}</span></div>
+              <div class="text-xs room-online ${isActive && isJoined ? 'text-white/80' : 'text-slate-400'}">${stats.users}人在线 · ${achievement.name}</div>
+            </div>
+            <div class="room-actions">
+              ${room.isWorld ? '<span class="world-badge">固定</span>' : isJoined ? `<button class="exit-btn ${isActive ? 'active-exit' : ''}" onclick="event.stopPropagation(); exitRoom('${room.id}')"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></button>` : canJoinMore ? '<span class="join-badge bg-amber-100 text-amber-700">加入</span>' : '<span class="join-badge bg-slate-200 text-slate-500">已满</span>'}
+            </div>
+            ${idx < 3 ? `<span class="rank-crown">${idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function handleRoomClick(roomId, isJoined) { isJoined ? switchRoom(roomId) : joinRoom(roomId); }
+    async function joinRoom(roomId) {
+      if (roomId === 'world') return;
+      if (joinedRooms.filter(r => r !== 'world').length >= 3) { showToast('最多只能加入3个额外聊天室'); return; }
+      if (!joinedRooms.includes(roomId)) {
+        joinedRooms.push(roomId);
+        await supabase.from('users').update({ joined_rooms: joinedRooms }).eq('id', currentUser.id);
+        currentUser.joined_rooms = joinedRooms;
+        localStorage.setItem('fishUser', JSON.stringify(currentUser));
+        renderAllRooms(); renderRoomTags(); updateJoinedCount(); switchRoom(roomId);
+        showToast('成功加入聊天室！');
+      }
+    }
+    async function exitRoom(roomId) {
+      if (roomId === 'world') { showToast('世界聊天室无法退出'); return; }
+      const index = joinedRooms.indexOf(roomId);
+      if (index > -1) {
+        joinedRooms.splice(index, 1);
+        await supabase.from('users').update({ joined_rooms: joinedRooms }).eq('id', currentUser.id);
+        currentUser.joined_rooms = joinedRooms;
+        localStorage.setItem('fishUser', JSON.stringify(currentUser));
+        if (currentRoom === roomId) switchRoom('world');
+        else { renderAllRooms(); renderRoomTags(); updateJoinedCount(); }
+        showToast('已退出聊天室');
+      }
+    }
+    function renderRoomTags() { document.getElementById('roomTags').innerHTML = joinedRooms.map(roomId => { const room = roomTypes.find(r => r.id === roomId); return room ? `<div class="room-tag ${currentRoom === roomId ? 'active' : ''}" onclick="switchRoom('${roomId}')"><span>${room.emoji}</span>${room.name}</div>` : ''; }).join(''); }
+    function updateJoinedCount() { document.getElementById('joinedCount').textContent = joinedRooms.filter(r => r !== 'world').length; }
+
+    // ========================================
+    // 消息系统 (核心)
+    // ========================================
+    async function switchRoom(roomId) {
+      currentRoom = roomId;
+      const room = roomTypes.find(r => r.id === roomId);
+      if (room) {
+        document.getElementById('currentRoomName').textContent = room.name;
+        document.getElementById('currentRoomDesc').textContent = room.desc;
+        document.getElementById('currentRoomIcon').innerHTML = `<span class="text-xl">${room.emoji}</span>`;
+        const colorMap = { emerald: 'bg-emerald-100', pink: 'bg-pink-100', blue: 'bg-blue-100', purple: 'bg-purple-100', orange: 'bg-orange-100', cyan: 'bg-cyan-100', red: 'bg-red-100' };
+        document.getElementById('currentRoomIcon').className = `room-icon ${colorMap[room.color]}`;
+      }
+      renderAllRooms(); renderRoomTags(); renderMembers(); updateRoomStats();
+      await loadMessages(); subscribeMessages();
+      closeSidebar();
+    }
+
+    async function loadMessages() {
+      const { data: messages } = await supabase.from('messages').select('*').eq('room_id', currentRoom).order('created_at', { ascending: true }).limit(100);
+      const container = document.getElementById('messageList');
+      container.innerHTML = '';
+      if (messages && messages.length > 0) messages.forEach(msg => appendMessage(msg));
+      else container.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-400"><p>暂无消息，来说点什么吧~</p></div>';
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function subscribeMessages() {
+      if (messageSubscription) messageSubscription.unsubscribe();
+      messageSubscription = supabase.channel('messages:' + currentRoom).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${currentRoom}` }, payload => appendMessage(payload.new)).subscribe();
+    }
+
+    function appendMessage(msg) {
+      const container = document.getElementById('messageList');
+      const isSelf = msg.username === currentUser?.username;
+      const time = new Date(msg.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      const data = memberNamesData[currentRoom] || memberNamesData.world;
+      const avatar = data.avatars[Math.floor(Math.random() * data.avatars.length)];
+      const avatarClass = data.avatarClasses[Math.floor(Math.random() * data.avatarClasses.length)];
+      container.insertAdjacentHTML('beforeend', `
+        <div class="message flex items-start gap-3 ${isSelf ? 'flex-row-reverse' : ''}">
+          <div class="w-10 h-10 rounded-full ${isSelf ? 'bg-gradient-to-br from-emerald-400 to-teal-500' : avatarClass} flex items-center justify-center text-lg flex-shrink-0">${isSelf ? currentUser.username[0].toUpperCase() : avatar}</div>
+          <div class="${isSelf ? 'text-right' : ''}">
+            <div class="flex items-center gap-2 mb-1 ${isSelf ? 'justify-end' : ''}"><span class="font-medium text-slate-800">${msg.username}</span><span class="text-xs text-slate-400">${time}</span></div>
+            <div class="${isSelf ? 'message-self' : 'message-other'} px-4 py-2.5 max-w-xs sm:max-w-md lg:max-w-lg inline-block">${escapeHtml(msg.content)}</div>
+          </div>
+        </div>`);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+      if (containsSensitiveWords(content)) { showWarning(); return; }
+
+      totalWords += content.length;
+      document.getElementById('sendBtn').disabled = true;
+      const { error } = await supabase.from('messages').insert({ room_id: currentRoom, user_id: currentUser.id, username: currentUser.username, content });
+      document.getElementById('sendBtn').disabled = false;
+
+      if (error) showToast('发送失败');
+      else { input.value = ''; input.style.height = 'auto'; }
+    }
+
+    function containsSensitiveWords(text) { return sensitiveWords.some(word => text.toLowerCase().includes(word)); }
+    function showWarning() { document.getElementById('warningToast').classList.remove('hidden'); document.getElementById('inputWarning').classList.remove('hidden'); setTimeout(() => { document.getElementById('warningToast').classList.add('hidden'); document.getElementById('inputWarning').classList.add('hidden'); }, 3000); }
+
+    function renderMembers() {
+      const data = memberNamesData[currentRoom] || memberNamesData.world;
+      const members = [];
+      for (let i = 0; i < 8; i++) {
+        members.push({
+          name: data.names[i % data.names.length],
+          status: Math.random() > 0.2 ? '在线' : '离开',
+          avatar: data.avatars[i % data.avatars.length],
+          avatarClass: data.avatarClasses[i % data.avatarClasses.length]
+        });
+      }
+      document.getElementById('memberCount').textContent = `${members.filter(m => m.status === '在线').length}人`;
+      document.getElementById('memberListContent').innerHTML = members.map((m, i) => `<div class="member-item flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer" style="animation-delay: ${i * 50}ms"><div class="member-avatar ${m.avatarClass}">${m.avatar}</div><div class="flex-1"><div class="font-medium text-slate-700 text-sm">${m.name}</div><div class="text-xs ${m.status === '在线' ? 'text-emerald-500' : 'text-slate-400'}">${m.status}</div></div>${m.status === '在线' ? '<div class="online-dot"></div>' : ''}</div>`).join('');
+    }
+
+    // ========================================
+    // 辅助
+    // ========================================
+    function handleKeyDown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+    function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
+    function toggleMemberList() { document.getElementById('memberList').classList.toggle('hidden'); }
+    function showToast(msg) { document.getElementById('toastMessage').textContent = msg; document.getElementById('warningToast').classList.remove('hidden'); setTimeout(() => document.getElementById('warningToast').classList.add('hidden'), 3000); }
+
+    // 个人中心
+    function openProfile() {
+      const modal = document.getElementById('profileModal'); modal.classList.remove('hidden'); modal.classList.add('flex');
+      document.getElementById('profileAvatar').textContent = currentUser.username[0].toUpperCase();
+      document.getElementById('profileName').textContent = currentUser.username;
+      document.getElementById('statWords').textContent = totalWords;
+      document.getElementById('statTime').textContent = onlineTime;
+      document.getElementById('statDays').textContent = getConsecutiveDays();
+      renderCheckinCalendar();
+      if (checkinDays.includes(new Date().toDateString())) { document.getElementById('checkinBtn').textContent = '已签到'; document.getElementById('checkinBtn').disabled = true; document.getElementById('checkinBtn').classList.add('opacity-50'); }
+    }
+    function closeProfile() { document.getElementById('profileModal').classList.add('hidden'); document.getElementById('profileModal').classList.remove('flex'); }
+    function getConsecutiveDays() { let c = 0; const t = new Date(); for (let i = 0; i < 30; i++) { const d = new Date(t); d.setDate(t.getDate() - i); if (checkinDays.includes(d.toDateString())) c++; else break; } return c; }
+    async function doCheckin() {
+      const today = new Date().toDateString();
+      if (!checkinDays.includes(today)) {
+        checkinDays.push(today);
+        await supabase.from('users').update({ checkin_days: checkinDays }).eq('id', currentUser.id);
+        document.getElementById('checkinBtn').textContent = '已签到'; document.getElementById('checkinBtn').disabled = true; document.getElementById('checkinBtn').classList.add('opacity-50');
+        document.getElementById('statDays').textContent = getConsecutiveDays();
+        renderCheckinCalendar();
+        showToast('签到成功！');
+      }
+    }
+    function renderCheckinCalendar() {
+      const container = document.getElementById('checkinCalendar');
+      const today = new Date();
+      const days = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      container.innerHTML = Array.from({ length: days }, (_, i) => {
+        const d = new Date(today.getFullYear(), today.getMonth(), i + 1);
+        const checked = checkinDays.includes(d.toDateString());
+        return `<div class="checkin-day ${checked ? 'checked' : ''} ${i + 1 === today.getDate() ? 'today' : ''} ${i + 1 > today.getDate() ? 'future' : ''}">${i + 1}</div>`;
+      }).join('');
+    }
+
+    // 启动
+    init();
+  </script>
+</body>
+</html>
